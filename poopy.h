@@ -15,9 +15,7 @@ struct Vec3{
 };
 
 size_t to1d(size_t x, size_t y, size_t z, size_t maxX, size_t maxY);
-
 int get(int x, int y, int z);
-
 int get_check(int x, int y, int z);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,9 +26,12 @@ int get_check(int x, int y, int z);
 int num(Vec3 const &min, Vec3 const &max);
 
 void createSumTable(float *volume, Vec3 extents, std::function<int(int)> empty);
-void printSumTable();
 
+void findPlane(int delta, int axis);
+
+void printSumTable();
 void printNumCoords(Vec3 const &min, Vec3 const &max);
+
 std::ostream& operator<<(std::ostream &os, Vec3 const &v);
 
 #endif //POOPYPANTS_POOPY_H
