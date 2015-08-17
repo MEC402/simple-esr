@@ -39,7 +39,7 @@ int get(int x, int y, int z)
 ///////////////////////////////////////////////////////////////////////////////
 int get_check(int x, int y, int z)
 {
-    if (x < 0 || y < 0 || z < 0){
+    if (x < 0 || y < 0 || z < 0) {
         return 0;
     }
 
@@ -80,39 +80,40 @@ void createSumTable(float *volume, Vec3 extents, std::function<int(int)> empty)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void findPlane(int delta, int axis)
+void findPlane(int delta, int axis, Vec3 const &min, Vec3 const &max)
 {
-    int numPlanes;
+    size_t numPlanes{ 0 };
     std::vector<int> candidates;
 
     // move candidate plane along axis
     switch (axis)
     {
-        case 0:    // X
-            numPlanes = static_cast<int>(0.3f * svt::extents.x);
-            std::generate_n(candidates.begin(), numPlanes, svt::accum_delta(delta));
+        case 0:   // X
+            numPlanes = static_cast<size_t>(0.3f * svt::extents.x);
+            candidates.resize(numPlanes);
+            std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
-                candidates[i] = num({}, {});  //TODO: Region
+                  //TODO: BV
             }
             break;
-        case 1:    // Y
-            numPlanes = static_cast<int>(0.3f * svt::extents.y);
-            std::generate_n(candidates.begin(), numPlanes, svt::accum_delta(delta));
+        case 1:   // Y
+            numPlanes = static_cast<size_t>(0.3f * svt::extents.y);
+            candidates.resize(numPlanes);
+            std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
-                candidates[i] = num({}, {});  //TODO: Region
+                //TODO: BV
             }
             break;
-        case 2:    // Z
-            numPlanes = static_cast<int>(0.3f * svt::extents.z);
-            std::generate_n(candidates.begin(), numPlanes, svt::accum_delta(delta));
+        case 2:   // Z
+            numPlanes = static_cast<size_t>(0.3f * svt::extents.z);
+            candidates.resize(numPlanes);
+            std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
-                candidates[i] = num({}, {});  //TODO: Region
+                //TODO: BV
             }
             break;
         default: break;
     }
-
-
 }
 
 
