@@ -61,7 +61,7 @@ int num(Vec3 const &min, Vec3 const &max)
 void createSumTable(float *volume, Vec3 extents, std::function<int(int)> empty)
 {
     svt::extents = extents;
-    svt::sumTable.resize((size_t)extents.x * (size_t)extents.y * (size_t)extents.z);
+    svt::sumTable.resize(size_t(extents.x) * size_t(extents.y) * size_t(extents.z));
     for(int z = 1; z < extents.z; ++z) {
     for(int y = 1; y < extents.y; ++y) {
     for(int x = 1; x < extents.x; ++x) {
@@ -80,16 +80,18 @@ void createSumTable(float *volume, Vec3 extents, std::function<int(int)> empty)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void findPlane(int delta, int axis, Vec3 const &min, Vec3 const &max)
+void findPlane(int perc, int axis, Vec3 const &min, Vec3 const &max)
 {
     size_t numPlanes{ 0 };
+    size_t delta{ 0 };
     std::vector<int> candidates;
 
     // move candidate plane along axis
     switch (axis)
     {
         case 0:   // X
-            numPlanes = static_cast<size_t>(0.3f * svt::extents.x);
+            numPlanes = static_cast<size_t>(perc * svt::extents.x);
+            delta = svt::extents.x / numPlanes;
             candidates.resize(numPlanes);
             std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
@@ -97,7 +99,8 @@ void findPlane(int delta, int axis, Vec3 const &min, Vec3 const &max)
             }
             break;
         case 1:   // Y
-            numPlanes = static_cast<size_t>(0.3f * svt::extents.y);
+            numPlanes = static_cast<size_t>(perc * svt::extents.y);
+            delta = svt::extents.y / numPlanes;
             candidates.resize(numPlanes);
             std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
@@ -105,7 +108,8 @@ void findPlane(int delta, int axis, Vec3 const &min, Vec3 const &max)
             }
             break;
         case 2:   // Z
-            numPlanes = static_cast<size_t>(0.3f * svt::extents.z);
+            numPlanes = static_cast<size_t>(perc * svt::extents.z);
+            delta = svt::extents.z / numPlanes;
             candidates.resize(numPlanes);
             std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
@@ -116,6 +120,84 @@ void findPlane(int delta, int axis, Vec3 const &min, Vec3 const &max)
     }
 }
 
+
+void bv(Vec3 const& rmin, Vec3 const& rmax)
+{
+    Vec3 bvmin; 
+    Vec3 bvmax;
+    
+    // xmin --> xmax
+    for (int x{ rmin.x }; x < rmax.x; ++x) {
+        std::cout << "xmin=" << x << ", ";
+        if (num(rmin, { x, rmax.y, rmax.z }) != 0) {
+            bvmin.x = x;
+            std::cout << " Found xmin: " << bvmin;
+            break;
+        }
+    }
+    std::cout << '\n';
+
+    // ymin --> ymax
+    for (int y{ rmin.y }; y < rmax.y; ++y) {
+        std::cout << "ymin=" << y << ", ";
+        if (num(rmin, { rmax.x, y, rmax.z }) != 0) {
+            bvmin.y = y;
+            std::cout << " Found ymin: " << bvmin;
+            break;
+        }
+    }
+    std::cout << '\n';
+
+    // zmin --> zmax
+    for (int z{ rmin.z }; z < rmax.z; ++z) {
+        std::cout << "zmin=" << z << ", ";
+        if (num(rmin, { rmax.x, rmax.y, z }) != 0) {
+            bvmin.z = z;
+            std::cout << " Found zmin: " << bvmin;
+            break;
+        }
+    }
+    std::cout << '\n';
+
+
+    // xmax --> xmin
+    for (int x{ rmax.x }; x-- > bvmin.x;) {
+        std::cout << "xmax=" << x << ", ";
+        if (num({ x, bvmin.y, bvmin.z }, rmax) != 0) {
+            bvmax.x = x;
+            std::cout << " Found xmax: " << bvmax;
+            break;
+        }
+    }
+    std::cout << '\n';
+
+
+    // ymax --> ymin
+    for (int y{ rmax.y }; y-- > bvmin.y;) {
+        std::cout << "ymax=" << y << ", ";
+       if (num({ bvmin.x, y, bvmin.z }, rmax) != 0) {
+           bvmax.y = y;
+           std::cout << " Found ymax: " << bvmax;
+           break;
+       }
+    }
+    std::cout << '\n';
+
+
+    // zmax --> zmin
+    for (int z{ rmax.z }; z-- > bvmin.z;) {
+        std::cout << "zmax=" << z << ", ";
+        if (num({ bvmin.x, bvmin.y, z }, rmax) != 0) {
+            bvmax.z = z;
+            std::cout << " Found zmax: " << bvmax;
+            break;
+        }
+    }
+    std::cout << '\n';
+
+    std::cout << "BV Min: " << bvmin << std::endl;
+    std::cout << "BV Max: " << bvmax << std::endl;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void printSumTable()

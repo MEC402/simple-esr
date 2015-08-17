@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <array>
 
 #include "poopy.h"
 
@@ -53,6 +54,15 @@ int main()
 {
     createSumTable(region.data(), {10, 8, 4}, is_empty());
     printSumTable();
+    int X{ 0 };
+    int Y{ 1 };
+    int Z{ 2 };
+    //findPlane(0.3f, X, )
+
+    std::cout << std::endl;
+
+    bv({ 0,0,0 }, { 6,6,2 });
+
     std::cout << std::endl;
 
     printNumCoords({0,0,0}, {4,4,2});
