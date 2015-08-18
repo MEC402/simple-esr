@@ -161,10 +161,10 @@ void bv(Vec3 const& rmin, Vec3 const& rmax)
 
 
     // xmax --> xmin
-    for (int x{ rmax.x }; x-- > bvmin.x;) {
+    for (int x{ rmax.x }; x > rmin.x; --x) {
         std::cout << "xmax=" << x << ", ";
-        if (num({ x, bvmin.y, bvmin.z }, rmax) != 0) {
-            bvmax.x = x;
+        if (num({ x, rmin.y, rmin.z }, rmax) != 0) {
+            bvmax.x = x+1;
             std::cout << " Found xmax: " << bvmax;
             break;
         }
@@ -173,10 +173,10 @@ void bv(Vec3 const& rmin, Vec3 const& rmax)
 
 
     // ymax --> ymin
-    for (int y{ rmax.y }; y-- > bvmin.y;) {
+    for (int y{ rmax.y }; y > rmin.y; --y) {
         std::cout << "ymax=" << y << ", ";
-       if (num({ bvmin.x, y, bvmin.z }, rmax) != 0) {
-           bvmax.y = y;
+       if (num({ rmin.x, y, rmin.z }, rmax) != 0) {
+           bvmax.y = y+1;
            std::cout << " Found ymax: " << bvmax;
            break;
        }
@@ -185,10 +185,10 @@ void bv(Vec3 const& rmin, Vec3 const& rmax)
 
 
     // zmax --> zmin
-    for (int z{ rmax.z }; z-- > bvmin.z;) {
+    for (int z{ rmax.z }; z > rmin.z; --z) {
         std::cout << "zmax=" << z << ", ";
-        if (num({ bvmin.x, bvmin.y, z }, rmax) != 0) {
-            bvmax.z = z;
+        if (num({ rmin.x, rmin.y, z }, rmax) != 0) {
+            bvmax.z = z+1;
             std::cout << " Found zmax: " << bvmax;
             break;
         }
@@ -199,20 +199,22 @@ void bv(Vec3 const& rmin, Vec3 const& rmax)
     std::cout << "BV Max: " << bvmax << std::endl;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 void printSumTable()
 {
     int i{ 0 };
     for (auto v : svt::sumTable) {
         if (i % svt::extents.x == 0) {
-            std::cout << "\n";
+            std::cout << '\n';
             if (i % (svt::extents.x * svt::extents.y) == 0) {
-                std::cout << "\n";
+                std::cout << '\n';
             }
         }
         std::cout << v << ", ";
         ++i;
     }
+    std::cout << '\n';
 }
 
 
