@@ -12,11 +12,22 @@ namespace svt{
 
     Vec3 extents;
 
+    /////////////////////////////////////////////////////////////////////////// 
+    /// \brief Generator that produces ints spaced by \c delta amount and 
+    /// starting at \c start.
+    /////////////////////////////////////////////////////////////////////////// 
     struct accum_delta {
         int d;  // delta
         int v;  // value
-        accum_delta(int delta) : d{delta} { }
-        int operator()() { return v += d; }
+
+        accum_delta(int start, int delta) : d{ delta }, v{ start } { }
+
+        int operator()() { 
+            int r = v;
+            v += d;
+
+            return r; 
+        }
     };
 
 } // namespace svt
@@ -58,10 +69,12 @@ int num(Vec3 const &min, Vec3 const &max)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void createSumTable(float *volume, Vec3 extents, std::function<int(int)> empty)
+std::vector<int> const & 
+createSumTable(float *volume, Vec3 extents, std::function<int(float)> empty)
 {
     svt::extents = extents;
     svt::sumTable.resize(size_t(extents.x) * size_t(extents.y) * size_t(extents.z));
+
     for(int z = 1; z < extents.z; ++z) {
     for(int y = 1; y < extents.y; ++y) {
     for(int x = 1; x < extents.x; ++x) {
@@ -76,60 +89,99 @@ void createSumTable(float *volume, Vec3 extents, std::function<int(int)> empty)
 
         svt::sumTable[idx] = v2;
     }}}
+    
+    return svt::sumTable;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void findPlane(int perc, int axis, Vec3 const &min, Vec3 const &max)
+Vec3 findPlane(float perc, int axis, Vec3 const &min, Vec3 const &max)
 {
     size_t numPlanes{ 0 };
     size_t delta{ 0 };
+    size_t smallestIdx{ 0 };
     std::vector<int> candidates;
+     
+    int smallest{ std::numeric_limits<int>::max() };
     // move candidate plane along axis
     switch (axis)
     {
         case 0:   // X
+        {
             numPlanes = static_cast<size_t>(perc * svt::extents.x);
             delta = svt::extents.x / numPlanes;
             candidates.resize(numPlanes);
-            std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
+            std::generate(candidates.begin(), candidates.end(), 
+                svt::accum_delta(min.x, delta));
+
             for (size_t i = 0; i < candidates.size(); ++i) {
-                  //TODO: BV
-                bv(min, { candidates[i], min.y, min.z });
-                bv({ candidates[i], min.y, min.z }, max);
+                Vec3 candidate{ min.x + candidates[i], min.y, min.z };
+
+                int diff = std::abs( bv(min, candidate) - bv(candidate, max) );
+
+                if (diff < smallest) {
+                    smallest = diff;
+                    smallestIdx = i;
+                }
             }
-            break;
+
+            return{ min.x + candidates[smallestIdx], min.y, min.z };
+        }
+
         case 1:   // Y
+        {
             numPlanes = static_cast<size_t>(perc * svt::extents.y);
             delta = svt::extents.y / numPlanes;
             candidates.resize(numPlanes);
-            std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
+            std::generate(candidates.begin(), candidates.end(), 
+                svt::accum_delta(min.y, delta));
+
             for (size_t i = 0; i < candidates.size(); ++i) {
-                //TODO: BV
-                bv(min, { min.x, candidates[i], min.z });
-                bv({ min.x, candidates[i], min.z }, max);
+                Vec3 candidate{ min.x, min.y + candidates[i], min.z };
+
+                int diff = std::abs( bv(min, candidate) - bv(candidate, max) );
+
+                if (diff < smallest) {
+                    smallest = diff;
+                    smallestIdx = i;
+                }
             }
-            break;
+
+            return{ min.x, min.y + candidates[smallestIdx], min.z };
+        }
+
         case 2:   // Z
+        {
             numPlanes = static_cast<size_t>(perc * svt::extents.z);
             delta = svt::extents.z / numPlanes;
             candidates.resize(numPlanes);
-            std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
+            std::generate(candidates.begin(), candidates.end(), 
+                svt::accum_delta(min.z, delta));
+
             for (size_t i = 0; i < candidates.size(); ++i) {
-                //TODO: BV
-                bv(min, { min.x, min.y, candidates[i] });
-                bv({ min.x, min.y, candidates[i] }, max);
+                Vec3 candidate{ min.x, min.y, min.z + candidates[i] };
+
+                int diff = std::abs(bv(min, candidate) - bv(candidate, max));
+
+                if (diff < smallest) {
+                    smallest = diff;
+                    smallestIdx = i;
+                }
             }
-            break;
+
+            return{ min.x, min.y, min.z + candidates[smallestIdx] };
+        }
+
         default: break;
     }
+    return{ -1, -1, -1 };
 }
 
 
 int bv(Vec3 const& rmin, Vec3 const& rmax)
 {
-    Vec3 bvmin;
-    Vec3 bvmax;
+    Vec3 bvmin{0,0,0};
+    Vec3 bvmax{0,0,0};
     
     // xmin --> xmax
     for (int x{ rmin.x }; x < rmax.x; ++x) {
@@ -164,9 +216,11 @@ int bv(Vec3 const& rmin, Vec3 const& rmax)
     }
     std::cout << '\n';
 
-    // Why is 1 added to final x, y, and z values?
-    // num() actually returns the value for the region starting one voxel in front of the minimum
-    // indexes provided for its rmin. To compensate we add 1 to the final index.
+    // Q: Why is 1 added to final x, y, and z values?
+    // A: num() actually returns the value for the region starting one voxel in front of the 
+    // minimum indexes provided for its rmin. To compensate we add 1 to the final index.
+    // In other words, for a region R=[min, max], num(R) returns non-empty voxels for the
+    // region R=[min+1, max].
 
     // xmax --> xmin
     for (int x{ rmax.x }; x > rmin.x; --x) {
@@ -201,12 +255,16 @@ int bv(Vec3 const& rmin, Vec3 const& rmax)
             break;
         }
     }
-    std::cout << '\n';
+    std::cout << std::endl;
+
+    //int n = num({ bvmin.x-1, bvmin.y-1, bvmin.z-1 }, bvmax);
+    int n = num({ bvmin.x, bvmin.y, bvmin.z }, bvmax);
 
     std::cout << "BV Min: " << bvmin << '\n';
     std::cout << "BV Max: " << bvmax << '\n';
-    std::cout << "Num(BV_min, BV_max): " <<
-        num({bvmin.x-1, bvmin.y-1, bvmin.z-1}, bvmax) << '\n';
+    std::cout << "Num(BV_min, BV_max): " << n << '\n';
+
+    return n;
 }
 
 

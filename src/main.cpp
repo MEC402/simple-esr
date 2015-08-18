@@ -54,7 +54,7 @@ struct is_empty
 
 int main()
 {
-    createSumTable(region.data(), {12, 8, 4}, is_empty());
+    createSumTable(region.data(), { 12, 8, 4 }, is_empty());
     printSumTable();
 //    findPlane(0.3f, X, )
 
@@ -63,14 +63,11 @@ int main()
 
     std::cout << std::endl;
 
-    bv(roi_min, roi_max);
+    Vec3 split = findPlane(0.3f, X, roi_min, roi_max);
 
-    std::cout << std::endl;
+    std::cout << split << std::endl;
 
     printNumCoords(roi_min, roi_max);
-
-//    printNumCoords({0,4,0}, {5,4,3});
-
 
     return 0;
 }

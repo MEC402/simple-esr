@@ -1,7 +1,19 @@
 cmake_minimum_required(VERSION 3.3)
-project(poopypants)
+project(esr)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if (UNIX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif(UNIX)
 
-set(SOURCE_FILES main.cpp poopy.h poopy.cpp)
-add_executable(poopypants ${SOURCE_FILES})
+include_directories("src/"  "test/catch/")
+
+
+set(SOURCE_FILES 
+	src/main.cpp 
+	src/poopy.h 
+	src/poopy.cpp)
+
+add_executable(esr ${SOURCE_FILES})
+
+set(TEST_SOURCE_FILES test/test_main.cpp)
+add_executable(esr_test ${TEST_SOURCE_FILES})
