@@ -56,7 +56,7 @@ int main()
 {
     createSumTable(region.data(), {12, 8, 4}, is_empty());
     printSumTable();
-    //findPlane(0.3f, X, )
+//    findPlane(0.3f, X, )
 
     Vec3 roi_min{ 0,0,0 };
     Vec3 roi_max{ 6,6,2 };

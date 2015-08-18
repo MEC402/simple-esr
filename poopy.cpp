@@ -85,7 +85,6 @@ void findPlane(int perc, int axis, Vec3 const &min, Vec3 const &max)
     size_t numPlanes{ 0 };
     size_t delta{ 0 };
     std::vector<int> candidates;
-
     // move candidate plane along axis
     switch (axis)
     {
@@ -96,6 +95,8 @@ void findPlane(int perc, int axis, Vec3 const &min, Vec3 const &max)
             std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
                   //TODO: BV
+                bv(min, { candidates[i], min.y, min.z });
+                bv({ candidates[i], min.y, min.z }, max);
             }
             break;
         case 1:   // Y
@@ -105,6 +106,8 @@ void findPlane(int perc, int axis, Vec3 const &min, Vec3 const &max)
             std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
                 //TODO: BV
+                bv(min, { min.x, candidates[i], min.z });
+                bv({ min.x, candidates[i], min.z }, max);
             }
             break;
         case 2:   // Z
@@ -114,6 +117,8 @@ void findPlane(int perc, int axis, Vec3 const &min, Vec3 const &max)
             std::generate(candidates.begin(), candidates.end(), svt::accum_delta(delta));
             for (size_t i = 0; i < candidates.size(); ++i) {
                 //TODO: BV
+                bv(min, { min.x, min.y, candidates[i] });
+                bv({ min.x, min.y, candidates[i] }, max);
             }
             break;
         default: break;
@@ -121,9 +126,9 @@ void findPlane(int perc, int axis, Vec3 const &min, Vec3 const &max)
 }
 
 
-void bv(Vec3 const& rmin, Vec3 const& rmax)
+int bv(Vec3 const& rmin, Vec3 const& rmax)
 {
-    Vec3 bvmin; 
+    Vec3 bvmin;
     Vec3 bvmax;
     
     // xmin --> xmax
@@ -159,6 +164,9 @@ void bv(Vec3 const& rmin, Vec3 const& rmax)
     }
     std::cout << '\n';
 
+    // Why is 1 added to final x, y, and z values?
+    // num() actually returns the value for the region starting one voxel in front of the minimum
+    // indexes provided for its rmin. To compensate we add 1 to the final index.
 
     // xmax --> xmin
     for (int x{ rmax.x }; x > rmin.x; --x) {
@@ -195,8 +203,10 @@ void bv(Vec3 const& rmin, Vec3 const& rmax)
     }
     std::cout << '\n';
 
-    std::cout << "BV Min: " << bvmin << std::endl;
-    std::cout << "BV Max: " << bvmax << std::endl;
+    std::cout << "BV Min: " << bvmin << '\n';
+    std::cout << "BV Max: " << bvmax << '\n';
+    std::cout << "Num(BV_min, BV_max): " <<
+        num({bvmin.x-1, bvmin.y-1, bvmin.z-1}, bvmax) << '\n';
 }
 
 

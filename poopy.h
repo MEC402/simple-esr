@@ -27,7 +27,7 @@ int num(Vec3 const &min, Vec3 const &max);
 
 void createSumTable(float *volume, Vec3 extents, std::function<int(int)> empty);
 void findPlane(int delta, int axis, Vec3 const &rmin, Vec3 const &rmax);
-void bv(Vec3 const &vmin, Vec3 const &vmax);
+int bv(Vec3 const &vmin, Vec3 const &vmax);
 
 void printSumTable();
 void printNumCoords(Vec3 const &min, Vec3 const &max);
