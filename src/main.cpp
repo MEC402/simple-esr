@@ -63,7 +63,7 @@ int main()
 
     std::cout << std::endl;
 
-    Vec3 split = findPlane(0.3f, X, roi_min, roi_max);
+    Vec3MinMaxPair split = findPlane(0.3f, X, roi_min, roi_max);
 
     std::cout << split << std::endl;
 
