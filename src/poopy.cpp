@@ -191,12 +191,13 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 {
     Vec3 bvmin{ 0, 0, 0 };
     Vec3 bvmax{ 0, 0, 0 };
-
+    uint32_t found{ 0x0 };
     // xmin --> xmax
     for (int x{ rmin.x }; x < rmax.x; ++x) {
 //        std::cout << "xmin=" << x << ", ";
         if (num(rmin, { x, rmax.y, rmax.z }) != 0) {
             bvmin.x = x;
+            found |= 0x1;
             std::cout << " Found xmin: " << bvmin << ", ";
             break;
         }
@@ -208,6 +209,7 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 //        std::cout << "ymin=" << y << ", ";
         if (num(rmin, { rmax.x, y, rmax.z }) != 0) {
             bvmin.y = y;
+            found |= 0x2;
             std::cout << " Found ymin: " << bvmin << ", ";
             break;
         }
@@ -219,6 +221,7 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 //        std::cout << "zmin=" << z << ", ";
         if (num(rmin, { rmax.x, rmax.y, z }) != 0) {
             bvmin.z = z;
+            found |= 0x4;
             std::cout << " Found zmin: " << bvmin << ", ";
             break;
         }
@@ -236,6 +239,7 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 //        std::cout << "xmax=" << x << ", ";
         if (num({ x, rmin.y, rmin.z }, rmax) != 0) {
             bvmax.x = x+1;
+            found |= 0x8;
             std::cout << " Found xmax: " << bvmax << ", ";
             break;
         }
@@ -248,6 +252,7 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 //        std::cout << "ymax=" << y << ", ";
        if (num({ rmin.x, y, rmin.z }, rmax) != 0) {
            bvmax.y = y+1;
+           found |= 0x10;
            std::cout << " Found ymax: " << bvmax << ", ";
            break;
        }
@@ -260,11 +265,18 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 //        std::cout << "zmax=" << z << ", ";
         if (num({ rmin.x, rmin.y, z }, rmax) != 0) {
             bvmax.z = z+1;
+            found |= 0x20;
             std::cout << " Found zmax: " << bvmax << ", ";
             break;
         }
     }
     std::cout << std::endl;
+    if (found == 0x20+0x10+0x8+0x4+0x2+0x1){
+        std::cout << "All planes found" << std::endl;
+    } else {
+        std::cout << "Not all planes found: " << found << std::endl;
+        return 0;
+    }
 
     int n = num({ bvmin.x-1, bvmin.y-1, bvmin.z-1 }, bvmax);
 //    int n = num({ bvmin.x, bvmin.y, bvmin.z }, bvmax);

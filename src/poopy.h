@@ -14,6 +14,7 @@
 struct Vec3{
     Vec3() : Vec3(0,0,0) { }
     Vec3(int x, int y, int z) : x{ x } , y{ y } , z{ z } { }
+    Vec3(Vec3 const &o) : x{ o.x }, y{ o.y }, z{ o.z } { }
 
     bool operator==(Vec3 const &o)
     {
@@ -36,6 +37,9 @@ struct Vec3MinMaxPair{
 
     Vec3MinMaxPair(Vec3 const &vmin, Vec3 const &vmax)
         : min{vmin}, max{vmax} { }
+
+    Vec3MinMaxPair(Vec3MinMaxPair const &o)
+        : min{ o.min }, max{ o.max } { }
 
     bool operator==(Vec3MinMaxPair const &o)
     {
