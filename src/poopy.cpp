@@ -93,12 +93,22 @@ createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empt
     return svt::sumTable;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
 void genPlanes(int delta, int numPlanes, int start, std::vector<int> &candidates)
 {
-    candidates.resize(numPlanes);
+    candidates.resize(static_cast<size_t>(numPlanes));
     std::generate(candidates.begin(), candidates.end(),
         svt::accum_delta(start, delta));
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+void recursiveSplit(int numSplits, std::vector<BoundingVolume> &bvols)
+{
+    
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &max)
@@ -121,7 +131,7 @@ Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &m
                         bv( min, { min.x + candidates[i], max.y, max.z } ) -
                             bv( { min.x + candidates[i], min.y, min.z }, max) )
                 };
-                std::cout << "i: " << i << " diff: " << diff << "\n";
+                std::cout << "X i: " << i << " diff: " << diff << "\n-----\n" ;
                 //TODO: handle diff==smallest separatly
                 if (diff <= smallest) {
                     smallest = diff;
@@ -144,7 +154,7 @@ Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &m
                         bv( min, { max.x, min.y+candidates[i], max.z } ) -
                             bv( { min.x, min.y+candidates[i], min.z }, max) )
                 };
-                std::cout << "i: " << i << " diff: " << diff << "\n";
+                std::cout << "Y i: " << i << " diff: " << diff << "\n-----\n" ;
                 //TODO: handle diff==smallest separatly
                 if (diff <= smallest) {
                     smallest = diff;
@@ -153,8 +163,7 @@ Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &m
             } //for
 
             return { { min.x, min.y + candidates[smallestIdx], min.z },
-                     { max.x, min.y + candidates[smallestIdx], max.z }
-            };
+                     { max.x, min.y + candidates[smallestIdx], max.z } };
         }
 
         case 2:   // Z
@@ -168,7 +177,7 @@ Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &m
                         bv( min, { max.x, max.y, min.z+candidates[i] } ) -
                             bv( { min.x, min.y, min.z+candidates[i] }, max) )
                 };
-                std::cout << "i: " << i << " diff: " << diff << "\n";
+                std::cout << "Z i: " << i << " diff: " << diff << "\n-----\n" ;
                 //TODO: handle diff==smallest separatly
                 if (diff <= smallest) {
                     smallest = diff;
@@ -191,44 +200,35 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 {
     Vec3 bvmin{ 0, 0, 0 };
     Vec3 bvmax{ 0, 0, 0 };
-    uint32_t found{ 0x0 };
+    uint32_t found{ 0x0 }; 
     // xmin --> xmax
     for (int x{ rmin.x }; x < rmax.x; ++x) {
-//        std::cout << "xmin=" << x << ", ";
         if (num(rmin, { x, rmax.y, rmax.z }) != 0) {
             bvmin.x = x;
             found |= 0x1;
-            std::cout << " Found xmin: " << bvmin << ", ";
             break;
         }
     }
-//    std::cout << '\n';
 
     // ymin --> ymax
     for (int y{ rmin.y }; y < rmax.y; ++y) {
-//        std::cout << "ymin=" << y << ", ";
         if (num(rmin, { rmax.x, y, rmax.z }) != 0) {
             bvmin.y = y;
             found |= 0x2;
-            std::cout << " Found ymin: " << bvmin << ", ";
             break;
         }
     }
-//    std::cout << '\n';
 
     // zmin --> zmax
     for (int z{ rmin.z }; z < rmax.z; ++z) {
-//        std::cout << "zmin=" << z << ", ";
         if (num(rmin, { rmax.x, rmax.y, z }) != 0) {
             bvmin.z = z;
             found |= 0x4;
-            std::cout << " Found zmin: " << bvmin << ", ";
             break;
         }
     }
-//    std::cout << '\n';
 
-    // Q: You ask: Why is 1 added to final x, y, and z values for max-->min search?          //
+    // Q: You ask: Why is 1 added to final x, y, and z values for max-->min searches?        //
     // A: num() actually returns the value for the region starting one voxel in front of the //
     // minimum indexes provided for its rmin. To compensate we add 1 to the final index.     //
     // In other words, for a region R=[min, max], num(R) returns non-empty voxels for the    //
@@ -236,52 +236,46 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 
     // xmax --> xmin
     for (int x{ rmax.x }; x > rmin.x; --x) {
-//        std::cout << "xmax=" << x << ", ";
         if (num({ x, rmin.y, rmin.z }, rmax) != 0) {
             bvmax.x = x+1;
             found |= 0x8;
-            std::cout << " Found xmax: " << bvmax << ", ";
             break;
         }
     }
-//    std::cout << '\n';
 
 
     // ymax --> ymin
     for (int y{ rmax.y }; y > rmin.y; --y) {
-//        std::cout << "ymax=" << y << ", ";
        if (num({ rmin.x, y, rmin.z }, rmax) != 0) {
            bvmax.y = y+1;
            found |= 0x10;
-           std::cout << " Found ymax: " << bvmax << ", ";
            break;
        }
     }
-//    std::cout << '\n';
 
 
     // zmax --> zmin
     for (int z{ rmax.z }; z > rmin.z; --z) {
-//        std::cout << "zmax=" << z << ", ";
         if (num({ rmin.x, rmin.y, z }, rmax) != 0) {
             bvmax.z = z+1;
             found |= 0x20;
-            std::cout << " Found zmax: " << bvmax << ", ";
             break;
         }
     }
-    std::cout << std::endl;
-    if (found == 0x20+0x10+0x8+0x4+0x2+0x1){
-        std::cout << "All planes found" << std::endl;
+
+    
+    if (found == 0x20+0x10+0x8+0x4+0x2+0x1) {
+        std::cout << "All planes found: " << found << std::endl;
     } else {
         std::cout << "Not all planes found: " << found << std::endl;
-        return 0;
+//      return 0;
     }
 
-    int n = num({ bvmin.x-1, bvmin.y-1, bvmin.z-1 }, bvmax);
-//    int n = num({ bvmin.x, bvmin.y, bvmin.z }, bvmax);
+    //TODO: think about which one: idx-1 or idx-none?
+//  int n = num({ bvmin.x-1, bvmin.y-1, bvmin.z-1 }, bvmax);
+    int n = num({ bvmin.x, bvmin.y, bvmin.z }, bvmax);
 
-    std::cout << "Num(" << bvmin << ", " << bvmax << "): " << n << '\n';
+    std::cout << "Num(" << bvmin << ", " << bvmax << "): " << n << std::endl;
 
     bounds.min = bvmin;
     bounds.max = bvmax;

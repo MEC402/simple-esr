@@ -18,9 +18,9 @@ struct is_empty {
     float tmin;
     float tmax;
 
-    is_empty(float tmin, float tmax)
-        : tmin{ tmin }
-        , tmax{ tmax }
+    is_empty(float min, float max)
+        : tmin{ min }
+        , tmax{ max }
     { }
 
     int operator()(float x) {

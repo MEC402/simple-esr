@@ -99,11 +99,23 @@ std::vector<int> const &
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Generate \c numPlanes planes with spacing \c delta.
+/// \param delta spacing between planes.
+/// \param numPlanes Number of planes to generate.
+/// \param start Region start in voxels. 
+/// \param [out] candidates Return storage.
+///////////////////////////////////////////////////////////////////////////////
+void genPlanes(int delta, int numPlanes, int start, std::vector<int> &candidates);
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Find bounding volumes that minimize empty space.
+///////////////////////////////////////////////////////////////////////////////
+void recursiveSplit(int numSplits, std::vector<BoundingVolume> &bvols);
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Find the plane in region R=[rmin, rmax] that balances the number 
 ///        of non-empty voxels on both sides of the plane.
-/// \param perc The percentage of the extent along \c axis that should be used as
-///             spacing between planes. This needs to be small enough to guarantee
-///             enough planes are generated to span the extent of the splitting region.
+/// \param numPlanes number of candidate planes to test.
 /// \param axis The axis to generate the planes along, perpendicular to the
 ///             splitting axis.
 /// \param rmin The minimum of the bounding box around region.
