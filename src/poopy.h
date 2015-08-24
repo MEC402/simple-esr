@@ -21,63 +21,68 @@ struct Vec3{
         return x == o.x && y == o.y && z == o.z;
     }
 
-    std::ostream& operator<<(std::ostream &o) const
-    {
-        return o << "{" << x << ", " << y << ", " << z << "}";
-    }
-
     int x;
     int y;
     int z;
 };
 
 struct Vec3MinMaxPair{
-    Vec3MinMaxPair()
-        : Vec3MinMaxPair({ 0,0,0 }, { 0,0,0 }) { }
+    Vec3MinMaxPair() : Vec3MinMaxPair({ 0,0,0 }, { 0,0,0 }) { }
 
-    Vec3MinMaxPair(Vec3 const &vmin, Vec3 const &vmax)
-        : min{vmin}, max{vmax} { }
+    Vec3MinMaxPair(Vec3 const &vmin, Vec3 const &vmax) : min{vmin}, max{vmax} { }
 
-    Vec3MinMaxPair(Vec3MinMaxPair const &o)
-        : min{ o.min }, max{ o.max } { }
+    Vec3MinMaxPair(Vec3MinMaxPair const &o) : min{ o.min }, max{ o.max } { }
 
-    bool operator==(Vec3MinMaxPair const &o)
-    {
-        return min == o.min && max == o.max;
-    }
+    bool operator==(Vec3MinMaxPair const &o) { return min == o.min && max == o.max; }
 
     Vec3 min;
     Vec3 max;
 };
 
 
-struct BoundingVolume{
-    BoundingVolume(int n, Vec3 const &min, Vec3 const &max)
-        : BoundingVolume(n, {min, max} )
+class BoundingVolume{
+public:
+    BoundingVolume(int n, Vec3 const &min, Vec3 const &extent)
+        : BoundingVolume(n, {min, extent} )
     { }
 
     BoundingVolume(int n, Vec3MinMaxPair const &minmax)
-        : nonEmptyVoxels{ n }
-        , minmax{ minmax }
+        : m_nonEmptyVoxels{ n }
+        , m_minmax{ minmax }
     { }
 
+    BoundingVolume(BoundingVolume const & o)
+        : m_nonEmptyVoxels{ o.m_nonEmptyVoxels }
+        , m_minmax{ o.m_minmax }
+    { }
 
-    int nonEmptyVoxels;
-    Vec3MinMaxPair minmax;
+    Vec3 const & min() const { return m_minmax.min; }
+
+    Vec3 const & extent() const { return m_minmax.max; }
+
+    int nonEmptyVoxels() const { return m_nonEmptyVoxels; }
+
+private:
+    int m_nonEmptyVoxels;
+    Vec3MinMaxPair m_minmax;
 };
 
+
 size_t to1d(size_t x, size_t y, size_t z, size_t maxX, size_t maxY);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Get the value V(x,y,z) from the sum table.
 ///////////////////////////////////////////////////////////////////////////////
 int get(int x, int y, int z);
 
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Get a value V(x,y,z) from the sum table, but return 0 if any of 
 ///        the parameters are less than 0.
 ///////////////////////////////////////////////////////////////////////////////
 int get_check(int x, int y, int z);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Gives the number of non-empty voxels in [min+1, max]
@@ -105,12 +110,19 @@ std::vector<int> const &
 /// \param start Region start in voxels. 
 /// \param [out] candidates Return storage.
 ///////////////////////////////////////////////////////////////////////////////
-void genPlanes(int delta, int numPlanes, int start, std::vector<int> &candidates);
+void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find bounding volumes that minimize empty space.
 ///////////////////////////////////////////////////////////////////////////////
-void recursiveSplit(int numSplits, std::vector<BoundingVolume> &bvols);
+void split(float minEmptyPercent, int minVoxels, std::vector<BoundingVolume> &bvols);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Find bounding volumes that minimize empty space.
+///////////////////////////////////////////////////////////////////////////////
+void recursiveSplitHelper();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find the plane in region R=[rmin, rmax] that balances the number 

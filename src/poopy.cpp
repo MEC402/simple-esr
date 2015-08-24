@@ -8,9 +8,10 @@
 #include <algorithm>
 
 namespace svt{
-    std::vector<int> sumTable;
-
-    Vec3 extents;
+    std::vector<int> sumTable{ };
+    Vec3 extents{ 0,0,0 };
+    float minVoxels{ 0 };
+    float minEmptyPercent{ 0 };
 
     /////////////////////////////////////////////////////////////////////////// 
     /// \brief Generator that produces ints spaced by \c delta amount and 
@@ -29,7 +30,6 @@ namespace svt{
             return r; 
         }
     };
-
 } // namespace svt
 
 
@@ -95,7 +95,7 @@ createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empt
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void genPlanes(int delta, int numPlanes, int start, std::vector<int> &candidates)
+void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates)
 {
     //TODO: don't generate more planes than can fit in region.
     candidates.resize(static_cast<size_t>(numPlanes));
@@ -105,27 +105,40 @@ void genPlanes(int delta, int numPlanes, int start, std::vector<int> &candidates
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void recursiveSplit(int numSplits, std::vector<BoundingVolume> &bvols)
+// 
+void split(float minEmptyPercent, int minVoxels, int delta,
+           std::vector<BoundingVolume> &bvols)
+{
+    std::vector<int> planesX;
+    std::vector<int> planesY;
+    std::vector<int> planesZ;
+
+    genPlanes(svt::extents.x / delta, delta, delta, planesX);
+    genPlanes(svt::extents.y / delta, delta, delta, planesY);
+    genPlanes(svt::extents.z / delta, delta, delta, planesZ);
+
+    
+
+}
+
+void recursiveSplitHelper() 
 {
     
 }
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
-Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &max)
+Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, Vec3 const &min, Vec3 const &max)
 {
-    int delta{ 0 }; size_t smallestIdx{ 0 };
+    size_t smallestIdx{ 0 };
     int smallest{ std::numeric_limits<int>::max() };
-    std::vector<int> candidates;
 
     // move candidate plane along axis
     switch (axis)
     {
         case 0:   // X
         {
-            delta = static_cast<int>(svt::extents.x / numPlanes);
-            genPlanes(delta, numPlanes, min.x, candidates);
-
             for (size_t i = 0; i < candidates.size(); ++i) {
                 int diff{
                     std::abs(
@@ -146,9 +159,6 @@ Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &m
 
         case 1:   // Y
         {
-            delta = static_cast<int>(svt::extents.y / numPlanes);
-            genPlanes(delta, numPlanes, min.y, candidates);
-
             for (size_t i = 0; i < candidates.size(); ++i) {
                 int diff{
                     std::abs(
@@ -169,9 +179,6 @@ Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &m
 
         case 2:   // Z
         {
-            delta = static_cast<int>(svt::extents.z / numPlanes);
-            genPlanes(delta, numPlanes, min.z, candidates);
-
             for (size_t i = 0; i < candidates.size(); ++i) {
                 int diff{
                     std::abs(
@@ -184,7 +191,7 @@ Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &min, Vec3 const &m
                     smallest = diff;
                     smallestIdx = i;
                 }
-            }
+            } //for
 
             return { { min.x, min.y, min.z + candidates[smallestIdx] },
                      { max.x, max.y, min.z + candidates[smallestIdx] } };
@@ -332,4 +339,11 @@ std::ostream& operator<<(std::ostream &os, Vec3 const &v)
 std::ostream& operator<<(std::ostream &os, Vec3MinMaxPair const &v)
 {
     return os << "{" << v.min << ", " << v.max << "}";
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv)
+{
+    return os << "{" << bv.min() << ", " << bv.extent() << ", " << bv.nonEmptyVoxels() << "}";
 }
