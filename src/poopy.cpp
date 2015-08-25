@@ -97,14 +97,13 @@ createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empt
 ///////////////////////////////////////////////////////////////////////////////
 void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates)
 {
-    //TODO: don't generate more planes than can fit in region.
     candidates.resize(static_cast<size_t>(numPlanes));
     std::generate(candidates.begin(), candidates.end(),
         svt::accum_delta(start, delta));
 }
 
 
-/////////////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////////////////
 void split(float minEmptyPercent, int minVoxels, int delta,
         std::vector<BoundingVolume> &bvols)
 {

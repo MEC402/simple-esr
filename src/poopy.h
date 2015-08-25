@@ -11,7 +11,8 @@
 #include <vector>
 #include <iostream>
 
-struct Vec3{
+struct Vec3
+{
     Vec3() : Vec3(0,0,0) { }
     Vec3(int x, int y, int z) : x{ x } , y{ y } , z{ z } { }
     Vec3(Vec3 const &o) : x{ o.x }, y{ o.y }, z{ o.z } { }
@@ -26,7 +27,8 @@ struct Vec3{
     int z;
 };
 
-struct Vec3MinMaxPair{
+struct Vec3MinMaxPair
+{
     Vec3MinMaxPair() : Vec3MinMaxPair({ 0,0,0 }, { 0,0,0 }) { }
 
     Vec3MinMaxPair(Vec3 const &vmin, Vec3 const &vmax) : min{vmin}, max{vmax} { }
@@ -39,6 +41,38 @@ struct Vec3MinMaxPair{
     Vec3 max;
 };
 
+/////////////////////////////////////////////////////////////////////////// 
+/// \brief A node!!!! In a tree!!!
+/////////////////////////////////////////////////////////////////////////// 
+class Node
+{
+public:
+    Node() : Node(0,0,0) { }
+
+    Node(int a, int minP, int maxP) 
+        : m_axis{ a }
+        , m_minPlane{ minP }
+        , m_maxPlane{ maxP }
+        , m_leftChild{ 0 }
+        , m_rightChild{ 0 }
+    { }
+
+    int axis() const { return m_axis; }
+    int minP() const { return m_minPlane; }
+    int maxP() const { return m_maxPlane; }
+    int leftChild() const { return m_leftChild; }
+    int rightChild() const { return m_rightChild; }
+    
+    void leftChild(int c) { m_leftChild = c; }
+    void rightChild(int c) { m_rightChild = c; }
+
+private:
+    int m_axis;
+    int m_minPlane;
+    int m_maxPlane;
+    int m_leftChild;
+    int m_rightChild;
+};
 
 class BoundingVolume{
 public:
