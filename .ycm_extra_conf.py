@@ -8,6 +8,8 @@ flags = [
 '-Wall',
 '-Wextra',
 '-Werror',
+'-Weverything',
+'-Wno-c++98-compat',
 '-Wno-long-long',
 '-Wno-variadic-macros',
 '-Wno-missing-braces',

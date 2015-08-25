@@ -104,11 +104,13 @@ void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-// 
+/////////////////////////////////////////////////////////////////////////////// 
 void split(float minEmptyPercent, int minVoxels, int delta,
-           std::vector<BoundingVolume> &bvols)
+        std::vector<BoundingVolume> &bvols)
 {
+    svt::minEmptyPercent = minEmptyPercent;
+    svt::minVoxels = minVoxels;
+
     std::vector<int> planesX;
     std::vector<int> planesY;
     std::vector<int> planesZ;
@@ -126,10 +128,17 @@ void recursiveSplitHelper()
     
 }
 
-
+int diffSides(Vec3 const &leftMin, Vec3 const &leftMax, 
+        Vec3 const &rightMin, Vec3 const &rightMax)
+{
+    int left{ bv(leftMin, leftMax) };
+    int right{ bv(rightMin, rightMax) };
+    return std::abs(left - right);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, Vec3 const &min, Vec3 const &max)
+Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, 
+        Vec3 const &min, Vec3 const &max)
 {
     size_t smallestIdx{ 0 };
     int smallest{ std::numeric_limits<int>::max() };
@@ -140,11 +149,14 @@ Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, Vec3 cons
         case 0:   // X
         {
             for (size_t i = 0; i < candidates.size(); ++i) {
-                int diff{
-                    std::abs(
-                        bv( min, { min.x + candidates[i], max.y, max.z } ) -
-                            bv( { min.x + candidates[i], min.y, min.z }, max) )
-                };
+                int diff{ 
+                    diffSides(
+                        min, 
+                        { min.x+candidates[i], max.y, max.z }, 
+                        { min.x+candidates[i], min.y, min.z }, 
+                        max
+                    ) };
+
                 std::cout << "X i: " << i << " diff: " << diff << "\n-----\n" ;
                 //TODO: handle diff==smallest separatly
                 if (diff <= smallest) {
@@ -160,11 +172,14 @@ Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, Vec3 cons
         case 1:   // Y
         {
             for (size_t i = 0; i < candidates.size(); ++i) {
-                int diff{
-                    std::abs(
-                        bv( min, { max.x, min.y+candidates[i], max.z } ) -
-                            bv( { min.x, min.y+candidates[i], min.z }, max) )
-                };
+                int diff{ 
+                    diffSides( 
+                        min, 
+                        { max.x, min.y+candidates[i], max.z },
+                        { min.x, min.y+candidates[i], min.z }, 
+                        max 
+                    ) };
+
                 std::cout << "Y i: " << i << " diff: " << diff << "\n-----\n" ;
                 //TODO: handle diff==smallest separatly
                 if (diff <= smallest) {
@@ -181,10 +196,13 @@ Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, Vec3 cons
         {
             for (size_t i = 0; i < candidates.size(); ++i) {
                 int diff{
-                    std::abs(
-                        bv( min, { max.x, max.y, min.z+candidates[i] } ) -
-                            bv( { min.x, min.y, min.z+candidates[i] }, max) )
-                };
+                    diffSides(
+                        min, 
+                        { max.x, max.y, min.z+candidates[i] },
+                        { min.x, min.y, min.z+candidates[i] },
+                        max
+                    ) };
+
                 std::cout << "Z i: " << i << " diff: " << diff << "\n-----\n" ;
                 //TODO: handle diff==smallest separatly
                 if (diff <= smallest) {

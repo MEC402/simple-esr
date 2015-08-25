@@ -100,7 +100,7 @@ int num(Vec3 const &min, Vec3 const &max);
 ///        emptyness.
 ///////////////////////////////////////////////////////////////////////////////
 std::vector<int> const & 
-    createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empty);
+createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empty);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -115,8 +115,15 @@ void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find bounding volumes that minimize empty space.
+/// \param minEmptyPercent Halting condition, a BV may not be divided if it has
+///                        < \c minEmptyPercent of total voxel count emptyness.
+/// \param minVoxels Halting condition, a BV may not be divided smaller than
+///                  this.
+/// \param delta
+/// \param [out] bvols Output storage for bounding volumes.
 ///////////////////////////////////////////////////////////////////////////////
-void split(float minEmptyPercent, int minVoxels, std::vector<BoundingVolume> &bvols);
+void split(float minEmptyPercent, int minVoxels, int delta, 
+        std::vector<BoundingVolume> &bvols);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,17 +131,19 @@ void split(float minEmptyPercent, int minVoxels, std::vector<BoundingVolume> &bv
 ///////////////////////////////////////////////////////////////////////////////
 void recursiveSplitHelper();
 
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find the plane in region R=[rmin, rmax] that balances the number 
 ///        of non-empty voxels on both sides of the plane.
-/// \param numPlanes number of candidate planes to test.
+/// \param candidates set of candidate planes to search.
 /// \param axis The axis to generate the planes along, perpendicular to the
 ///             splitting axis.
 /// \param rmin The minimum of the bounding box around region.
 /// \param rmax The maximum of the bounding box around region.
 /// \return A pair of Vec3 that is the min and max of the chosen splitting plane.
 ///////////////////////////////////////////////////////////////////////////////
-Vec3MinMaxPair findPlane(int numPlanes, int axis, Vec3 const &rmin, Vec3 const &rmax);
+Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, 
+        Vec3 const &rmin, Vec3 const &rmax);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -149,6 +158,17 @@ int bv(Vec3 const &vmin, Vec3 const &vmax);
 ///        voxels on both sides. Returns the bv boundaries in bounds.
 ///////////////////////////////////////////////////////////////////////////////
 int bv(Vec3 const &vmin, Vec3 const &vmax, Vec3MinMaxPair &bounds);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Compute the non-empty voxel difference between left and right
+///        regions spec'd by the given min and max vectors.
+///
+/// \return An int that is the non-empty voxel difference.
+///////////////////////////////////////////////////////////////////////////////
+int diffSides(Vec3 const &leftMin, Vec3 const &leftMax, 
+        Vec3 const &rightMin, Vec3 const &rightMax);
+
 
 void printSumTable();
 void printNumCoords(Vec3 const &min, Vec3 const &max);
