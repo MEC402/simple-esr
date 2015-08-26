@@ -118,11 +118,11 @@ void split(float minEmptyPercent, int minVoxels, int delta,
     genPlanes(svt::extents.y / delta, delta, delta, planesY);
     genPlanes(svt::extents.z / delta, delta, delta, planesZ);
 
-    
+
 
 }
 
-void recursiveSplitHelper() 
+void recursiveSplitHelper(Node n, int axis, std::vector<Node> & nodes) 
 {
     
 }

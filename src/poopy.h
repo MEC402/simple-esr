@@ -163,7 +163,7 @@ void split(float minEmptyPercent, int minVoxels, int delta,
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find bounding volumes that minimize empty space.
 ///////////////////////////////////////////////////////////////////////////////
-void recursiveSplitHelper();
+void recursiveSplitHelper(Node &n, std::vector<BoundingVolume>);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,5 +209,6 @@ void printNumCoords(Vec3 const &min, Vec3 const &max);
 
 std::ostream& operator<<(std::ostream &os, Vec3 const &v);
 std::ostream& operator<<(std::ostream &os, Vec3MinMaxPair const &v);
+std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv);
 
 #endif //POOPYPANTS_POOPY_H

@@ -55,9 +55,9 @@ int main(int argc, char const * argv[])
 //
 //    Vec3MinMaxPair planeZ = findPlane(64, Z, {1, 1, 1}, {(width-1)/2, (height-1)/2, (depth-1)/2});
 
-    std::cout << "Plane X: " << planeX << std::endl;
-    std::cout << "Plane Y: " << planeY << std::endl;
-    std::cout << "Plane Z: " << planeZ << std::endl;
+//    std::cout << "Plane X: " << planeX << std::endl;
+//    std::cout << "Plane Y: " << planeY << std::endl;
+//    std::cout << "Plane Z: " << planeZ << std::endl;
 
     //Vec3MinMaxPair split = findPlane(0.3f, X, roi_min, roi_max);
 
