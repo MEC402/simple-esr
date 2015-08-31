@@ -42,4 +42,4 @@ add_executable(esr "src/main.cpp" ${SOURCE_FILES})
 
 target_link_libraries(esr ${CRUFT_LIBRARIES} ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})
 
-add_subdirectory("test/")
+#add_subdirectory("test/")

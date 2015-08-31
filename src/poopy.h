@@ -125,7 +125,7 @@ void printSumTable();
 void printNumCoords(Vec3 const &min, Vec3 const &max);
 
 std::ostream& operator<<(std::ostream &os, Vec3 const &v);
-std::ostream& operator<<(std::ostream &os, Vec3MinMaxPair const &v);
+std::ostream& operator<<(std::ostream &os, Plane const &v);
 std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv);
 
 #endif //POOPYPANTS_POOPY_H

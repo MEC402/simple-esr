@@ -150,9 +150,11 @@ findPlane(std::vector<int> const &candidates, Axis a, BoundingVolume const &bv)
 {
     size_t smallestIdx{ 0 };
     int smallest{ std::numeric_limits<int>::max() };
+    Vec3 min{ bv.min() };
+    Vec3 max{ bv.extent()-1 };
 
     // move candidate plane along axis
-    switch (n.axis())
+    switch (a)
     {
     case Axis::X:   
     {
@@ -373,9 +375,9 @@ std::ostream& operator<<(std::ostream &os, Vec3 const &v)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-std::ostream& operator<<(std::ostream &os, Vec3MinMaxPair const &v)
+std::ostream& operator<<(std::ostream &os, Plane const &v)
 {
-    return os << "{" << v.min << ", " << v.max << "}";
+    return os << "{" << v.min() << ", " << v.max() << "}";
 }
 
 
