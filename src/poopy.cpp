@@ -8,7 +8,13 @@
 #include <algorithm>
 
 namespace svt{
-    std::vector<int> sumTable{ };
+
+    std::vector<int> sumTable;
+    std::vector<int> offsetsX;
+    std::vector<int> offsetsY;
+    std::vector<int> offsetsZ;
+    std::vector<Node> tree;
+
     Vec3 extents{ 0,0,0 };
     float minVoxels{ 0 };
     float minEmptyPercent{ 0 };
@@ -105,30 +111,33 @@ void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates
 
 ///////////////////////////////////////////////////////////////////////////////
 void split(float minEmptyPercent, int minVoxels, int delta,
-        std::vector<BoundingVolume> &bvols)
+        std::vector<Node> &nodes)
 {
     svt::minEmptyPercent = minEmptyPercent;
     svt::minVoxels = minVoxels;
 
-    std::vector<int> planesX;
-    std::vector<int> planesY;
-    std::vector<int> planesZ;
-
-    genPlanes(svt::extents.x / delta, delta, delta, planesX);
-    genPlanes(svt::extents.y / delta, delta, delta, planesY);
-    genPlanes(svt::extents.z / delta, delta, delta, planesZ);
-
-
-
+    genPlanes(svt::extents.x / delta, delta, delta, svt::offsetsX);
+    genPlanes(svt::extents.y / delta, delta, delta, svt::offsetsY);
+    genPlanes(svt::extents.z / delta, delta, delta, svt::offsetsZ);
+    
+    Node root{ Axis::X, true, {0, {0,0,0}, svt::extents} };
+    
+    nodes[0] = root;
+    recursiveSplitHelper(root, Axis::X, nodes);     
 }
 
-void recursiveSplitHelper(Node n, int axis, std::vector<Node> & nodes) 
+
+///////////////////////////////////////////////////////////////////////////////
+void recursiveSplitHelper(Node &n, Axis axis, std::vector<Node> & nodes) 
 {
     
+
 }
 
-int diffSides(Vec3 const &leftMin, Vec3 const &leftMax, 
-        Vec3 const &rightMin, Vec3 const &rightMax)
+
+///////////////////////////////////////////////////////////////////////////////
+int 
+diffSides(Vec3 const &leftMin, Vec3 const &leftMax, Vec3 const &rightMin, Vec3 const &rightMax)
 {
     int left{ bv(leftMin, leftMax) };
     int right{ bv(rightMin, rightMax) };
@@ -136,95 +145,100 @@ int diffSides(Vec3 const &leftMin, Vec3 const &leftMax,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-Vec3MinMaxPair findPlane(std::vector<int> const &candidates, int axis, 
-        Vec3 const &min, Vec3 const &max)
+Plane
+findPlane(std::vector<int> const &candidates, Axis a, BoundingVolume const &bv)
 {
     size_t smallestIdx{ 0 };
     int smallest{ std::numeric_limits<int>::max() };
 
     // move candidate plane along axis
-    switch (axis)
+    switch (n.axis())
     {
-        case 0:   // X
-        {
-            for (size_t i = 0; i < candidates.size(); ++i) {
-                int diff{ 
-                    diffSides(
-                        min, 
-                        { min.x+candidates[i], max.y, max.z }, 
-                        { min.x+candidates[i], min.y, min.z }, 
-                        max
-                    ) };
+    case Axis::X:   
+    {
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            int diff{ 
+                diffSides(
+                    min, 
+                    { min.x+candidates[i], max.y, max.z }, 
+                    { min.x+candidates[i], min.y, min.z }, 
+                    max
+                ) };
 
-                std::cout << "X i: " << i << " diff: " << diff << "\n-----\n" ;
-                //TODO: handle diff==smallest separatly
-                if (diff <= smallest) {
-                    smallest = diff;
-                    smallestIdx = i;
-                }
-            } //for
+            std::cout << "X i: " << i << " diff: " << diff << "\n-----\n" ;
+            //TODO: handle diff==smallest separatly
+            if (diff <= smallest) {
+                smallest = diff;
+                smallestIdx = i;
+            }
+        } //for
 
-            return { { min.x + candidates[smallestIdx], min.y, min.z },
-                     { min.x + candidates[smallestIdx], max.y, max.z} };
-        }
+        return { { min.x + candidates[smallestIdx], min.y, min.z },
+                 { min.x + candidates[smallestIdx], max.y, max.z} };
+    }
 
-        case 1:   // Y
-        {
-            for (size_t i = 0; i < candidates.size(); ++i) {
-                int diff{ 
-                    diffSides( 
-                        min, 
-                        { max.x, min.y+candidates[i], max.z },
-                        { min.x, min.y+candidates[i], min.z }, 
-                        max 
-                    ) };
+    case Axis::Y:   
+    {
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            int diff{ 
+                diffSides( 
+                    min, 
+                    { max.x, min.y+candidates[i], max.z },
+                    { min.x, min.y+candidates[i], min.z }, 
+                    max 
+                ) };
 
-                std::cout << "Y i: " << i << " diff: " << diff << "\n-----\n" ;
-                //TODO: handle diff==smallest separatly
-                if (diff <= smallest) {
-                    smallest = diff;
-                    smallestIdx = i;
-                }
-            } //for
+            std::cout << "Y i: " << i << " diff: " << diff << "\n-----\n" ;
+            //TODO: handle diff==smallest separatly
+            if (diff <= smallest) {
+                smallest = diff;
+                smallestIdx = i;
+            }
+        } //for
 
-            return { { min.x, min.y + candidates[smallestIdx], min.z },
-                     { max.x, min.y + candidates[smallestIdx], max.z } };
-        }
+        return { { min.x, min.y + candidates[smallestIdx], min.z },
+                 { max.x, min.y + candidates[smallestIdx], max.z } };
+    }
 
-        case 2:   // Z
-        {
-            for (size_t i = 0; i < candidates.size(); ++i) {
-                int diff{
-                    diffSides(
-                        min, 
-                        { max.x, max.y, min.z+candidates[i] },
-                        { min.x, min.y, min.z+candidates[i] },
-                        max
-                    ) };
+    case Axis::Z:   
+    {
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            int diff{
+                diffSides(
+                    min, 
+                    { max.x, max.y, min.z+candidates[i] },
+                    { min.x, min.y, min.z+candidates[i] },
+                    max
+                ) };
 
-                std::cout << "Z i: " << i << " diff: " << diff << "\n-----\n" ;
-                //TODO: handle diff==smallest separatly
-                if (diff <= smallest) {
-                    smallest = diff;
-                    smallestIdx = i;
-                }
-            } //for
+            std::cout << "Z i: " << i << " diff: " << diff << "\n-----\n" ;
+            //TODO: handle diff==smallest separatly
+            if (diff <= smallest) {
+                smallest = diff;
+                smallestIdx = i;
+            }
+        } //for
 
-            return { { min.x, min.y, min.z + candidates[smallestIdx] },
-                     { max.x, max.y, min.z + candidates[smallestIdx] } };
-        }
+        return { { min.x, min.y, min.z + candidates[smallestIdx] },
+                 { max.x, max.y, min.z + candidates[smallestIdx] } };
+    }
 
-        default: break;
+    default: break;
     }
 
     return { { -1,-1,-1 }, { -1,-1,-1 } };
 }
 
-
-int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
+///////////////////////////////////////////////////////////////////////////////
+int 
+bv(BoundingVolume &vol)
 {
     Vec3 bvmin{ 0, 0, 0 };
     Vec3 bvmax{ 0, 0, 0 };
+
+    //Vec3 rmin{ vol.min() };
+    //Vec3 rmax{ vol.extent() - 1 };
+
     uint32_t found{ 0x0 }; 
     // xmin --> xmax
     for (int x{ rmin.x }; x < rmax.x; ++x) {
@@ -302,21 +316,26 @@ int bv(Vec3 const &rmin, Vec3 const &rmax, Vec3MinMaxPair &bounds)
 
     std::cout << "Num(" << bvmin << ", " << bvmax << "): " << n << std::endl;
 
-    bounds.min = bvmin;
-    bounds.max = bvmax;
+//    vol.nonEmptyVoxels(n);
+//    vol.min(bvmin);
+//    vol.extent(bvmax+1);
+    
+    rmin = bvmin;
+    rmax = bvmax;
 
     return n;
 }
 
-int bv(Vec3 const& rmin, Vec3 const& rmax)
-{
-    Vec3MinMaxPair pair;
-    return bv(rmin, rmax, pair);
-}
+//int bv(Vec3 const& rmin, Vec3 const& rmax)
+//{
+//    Vec3MinMaxPair pair;
+//    return bv(rmin, rmax, pair);
+//}
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void printSumTable()
+void
+printSumTable()
 {
     int i{ 0 };
     for (auto v : svt::sumTable) {
@@ -334,7 +353,8 @@ void printSumTable()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void printNumCoords(Vec3 const &min, Vec3 const &max)
+void 
+printNumCoords(Vec3 const &min, Vec3 const &max)
 {
     std::cout
            <<  "\nN(R) = (" << Vec3{max.x, max.y, max.z} << ":" << get(max.x,max.y,max.z) << " - " << Vec3{max.x, max.y, min.z} << ":" << get(max.x,max.y,min.z)
