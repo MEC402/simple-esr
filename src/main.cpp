@@ -10,9 +10,9 @@
 //#include <vector>
 //#include <array>
 
-const int X{ 0 };
-const int Y{ 1 };
-const int Z{ 2 };
+//const int X{ 0 };
+//const int Y{ 1 };
+//const int Z{ 2 };
 
 struct is_empty {
     float tmin;

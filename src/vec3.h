@@ -19,32 +19,59 @@ struct Vec3
     { }
 
 
+
     bool operator==(Vec3 const &o)
     {
         return x == o.x && y == o.y && z == o.z;
     }
 
 
-    Vec3 operator+(int s) 
+    Vec3& operator+=(Vec3 const &rhs)
     {
-        Vec3 ret{ *this };
-        ret.x += s;
-        ret.y += s;
-        ret.z += s;
+        x += rhs.x;
+        y += rhs.y;
+        z += rhs.z;
 
-        return ret;
+        return *this;
     }
 
 
-    Vec3 operator-(int s) 
+    friend Vec3 operator+(Vec3 lhs, int rhs)
     {
-        Vec3 ret{ *this };
-        ret.x -= s;
-        ret.y -= s;
-        ret.z -= s;
-
-        return ret;
+        lhs += Vec3{ rhs, rhs, rhs };
+        return lhs;
     }
+
+    friend Vec3 operator+(Vec3 lhs, Vec3 const& rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
+
+    Vec3& operator-=(Vec3 const &rhs)
+    {
+        x -= rhs.x;
+        y -= rhs.y;
+        z -= rhs.z;
+
+        return *this;
+    }
+
+
+    friend Vec3 operator-(Vec3 lhs, Vec3 const& rhs)
+    {
+        lhs -= rhs;
+        return lhs;
+    }
+
+
+    friend Vec3 operator-(Vec3 lhs, int rhs)
+    {
+        lhs -= Vec3{ rhs,rhs,rhs };
+        return lhs;
+    }
+
 
     int x;
     int y;
@@ -54,19 +81,28 @@ struct Vec3
 
 struct Plane
 {
-    Plane() : Plane({ 0,0,0 }, { 0,0,0 }) { }
+    Plane()
+        : Plane({ 0,0,0 }, { 0,0,0 })
+    { }
 
-    Plane(Vec3 const &vmin, Vec3 const &vmax) : m_min{vmin}, m_max{vmax} { }
+    Plane(const Vec3 &vmin, const Vec3 &vmax)
+        : m_min{vmin}, m_max{vmax}
+    { }
 
-    Plane(Plane const &o) : m_min{ o.m_min }, m_max{ o.m_max } { }
+    Plane(const Plane &o)
+        : m_min{ o.m_min }, m_max{ o.m_max }
+    { }
 
-    bool operator==(Plane const &o) { return m_min == o.m_min && m_max == o.m_max; }
+    bool operator==(const Plane &o)
+    {
+        return m_min == o.m_min && m_max == o.m_max;
+    }
 
-    Vec3 const & min() const { return m_min; }
-    void min(Vec3 const &m) { m_min = m; }
+    const Vec3& min() const { return m_min; }
+    void min(const Vec3 &m) { m_min = m; }
 
-    Vec3 const & max() const { return m_max; }
-    void max(Vec3 const &m) { m_max = m; }
+    const Vec3 & max() const { return m_max; }
+    void max(const Vec3 &m) { m_max = m; }
 
 private:
     Vec3 m_min;

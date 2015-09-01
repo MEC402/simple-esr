@@ -32,11 +32,15 @@ include_directories("src/tclap/include"
     "${GLEW_INCLUDE_DIRS}"
     )
 
-set(SOURCE_FILES 
+set(SOURCE_FILES
+    src/axis.h
+    src/boundingvolume.h
     src/cmdline.h
     src/cmdline.cpp
+    src/node.h
 	src/poopy.h
-	src/poopy.cpp)
+	src/poopy.cpp
+    src/vec3.h )
 
 add_executable(esr "src/main.cpp" ${SOURCE_FILES})
 

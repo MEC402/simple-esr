@@ -16,7 +16,7 @@ namespace svt{
     std::vector<Node> tree;
 
     Vec3 extents{ 0,0,0 };
-    float minVoxels{ 0 };
+    int minVoxels{ 0 };
     float minEmptyPercent{ 0 };
 
     /////////////////////////////////////////////////////////////////////////// 
@@ -40,21 +40,24 @@ namespace svt{
 
 
 ///////////////////////////////////////////////////////////////////////////////
-size_t to1d(size_t x, size_t y, size_t z, size_t maxX, size_t maxY)
+size_t
+to1d(size_t x, size_t y, size_t z, size_t maxX, size_t maxY)
 {
     return x + maxX * (y + maxY * z);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-int get(int x, int y, int z)
+int
+get(int x, int y, int z)
 {
     return svt::sumTable[x + svt::extents.x * (y + svt::extents.y * z)];
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-int get_check(int x, int y, int z)
+int
+get_check(int x, int y, int z)
 {
     if (x < 0 || y < 0 || z < 0) {
         return 0;
@@ -65,7 +68,8 @@ int get_check(int x, int y, int z)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-int num(Vec3 const &min, Vec3 const &max)
+int
+num(Vec3 const &min, Vec3 const &max)
 {
     return (get(max.x, max.y, max.z) - get(max.x, max.y, min.z))
            - (get(min.x, max.y, max.z) - get(min.x, max.y, min.z))
@@ -101,7 +105,8 @@ createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empt
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates)
+void
+genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates)
 {
     candidates.resize(static_cast<size_t>(numPlanes));
     std::generate(candidates.begin(), candidates.end(),
@@ -110,8 +115,8 @@ void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void split(float minEmptyPercent, int minVoxels, int delta,
-        std::vector<Node> &nodes)
+void
+split(float minEmptyPercent, int minVoxels, int delta)
 {
     svt::minEmptyPercent = minEmptyPercent;
     svt::minVoxels = minVoxels;
@@ -120,24 +125,57 @@ void split(float minEmptyPercent, int minVoxels, int delta,
     genPlanes(svt::extents.y / delta, delta, delta, svt::offsetsY);
     genPlanes(svt::extents.z / delta, delta, delta, svt::offsetsZ);
     
-    Node root{ Axis::X, true, {0, {0,0,0}, svt::extents} };
+    Node root{ 0, false, 0, {0,0,0}, svt::extents };
     
-    nodes[0] = root;
-    recursiveSplitHelper(root, Axis::X, nodes);     
+    svt::tree[0] = root;
+    recursiveSplitHelper(root);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void recursiveSplitHelper(Node &n, Axis axis, std::vector<Node> & nodes) 
+void
+recursiveSplitHelper(Node &n)
 {
-    
+    const bool not_a_leaf{ false };
+    const bool is_a_leaf{ !not_a_leaf };
 
+    // if n.numVox too small: n.isLeafe(true); return;
+    // if n.size too small: n.isLeaf(true); return;
+    if (n.numVoxels() <= svt::minVoxels) {
+        n.isLeaf(is_a_leaf);
+        return;
+    }
+
+    if (n.percentEmpty() <= svt::minEmptyPercent){
+        n.isLeaf(is_a_leaf);
+        return;
+    }
+
+    Plane p{ findPlane(n.shortestAxis(), n.bv()) };
+
+    Node left{ n.leftChild(),
+               not_a_leaf,
+               num(n.min(), p.max()),
+               n.min(),
+               p.max() - n.min() };
+    recursiveSplitHelper(left);
+
+    Node right{ n.rightChild(),
+                not_a_leaf,
+                num(p.min(), n.max()),
+                p.min(),
+                n.max() - p.min() };
+    recursiveSplitHelper(right);
+
+    svt::tree[left.index()] = left;
+    svt::tree[right.index()] = right;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 int 
-diffSides(Vec3 const &leftMin, Vec3 const &leftMax, Vec3 const &rightMin, Vec3 const &rightMax)
+diffSides(Vec3 const &leftMin, Vec3 const &leftMax,
+        Vec3 const &rightMin, Vec3 const &rightMax)
 {
     int left{ bv(leftMin, leftMax) };
     int right{ bv(rightMin, rightMax) };
@@ -146,102 +184,105 @@ diffSides(Vec3 const &leftMin, Vec3 const &leftMax, Vec3 const &rightMin, Vec3 c
 
 ///////////////////////////////////////////////////////////////////////////////
 Plane
-findPlane(std::vector<int> const &candidates, Axis a, BoundingVolume const &bv)
+findPlane(Axis a, BoundingVolume const &bv)
 {
-    size_t smallestIdx{ 0 };
+    int off{ 0 };
     int smallest{ std::numeric_limits<int>::max() };
     Vec3 min{ bv.min() };
-    Vec3 max{ bv.extent()-1 };
+    Vec3 max{ bv.min() + bv.extent() };
 
     // move candidate plane along axis
     switch (a)
     {
     case Axis::X:   
     {
-        for (size_t i = 0; i < candidates.size(); ++i) {
+        std::vector<int> &p = svt::offsetsX;
+//        for (size_t i = 0; i < p.size(); ++i) {
+        for(auto pp : p) {
             int diff{ 
                 diffSides(
                     min, 
-                    { min.x+candidates[i], max.y, max.z }, 
-                    { min.x+candidates[i], min.y, min.z }, 
+                    { min.x+pp, max.y, max.z },
+                    { min.x+pp, min.y, min.z },
                     max
                 ) };
 
-            std::cout << "X i: " << i << " diff: " << diff << "\n-----\n" ;
-            //TODO: handle diff==smallest separatly
+            std::cout << "X pp: " << pp << " diff: " << diff << "\n-----\n" ;
+            //TODO: handle diff==smallest separately
             if (diff <= smallest) {
                 smallest = diff;
-                smallestIdx = i;
+                off = pp;
             }
         } //for
 
-        return { { min.x + candidates[smallestIdx], min.y, min.z },
-                 { min.x + candidates[smallestIdx], max.y, max.z} };
+        return Plane{ { min.x + off, min.y, min.z },
+                      { min.x + off, max.y, max.z } };
     }
 
     case Axis::Y:   
     {
-        for (size_t i = 0; i < candidates.size(); ++i) {
+        std::vector<int> &p = svt::offsetsY;
+//        for (size_t i = 0; i < p.size(); ++i) {
+        for(auto pp : p) {
             int diff{ 
                 diffSides( 
                     min, 
-                    { max.x, min.y+candidates[i], max.z },
-                    { min.x, min.y+candidates[i], min.z }, 
+                    { max.x, min.y+pp, max.z },
+                    { min.x, min.y+pp, min.z },
                     max 
                 ) };
 
-            std::cout << "Y i: " << i << " diff: " << diff << "\n-----\n" ;
-            //TODO: handle diff==smallest separatly
+            std::cout << "Y pp: " << pp << " diff: " << diff << "\n-----\n" ;
+            //TODO: handle diff==smallest separately
             if (diff <= smallest) {
                 smallest = diff;
-                smallestIdx = i;
+                off = pp;
             }
         } //for
 
-        return { { min.x, min.y + candidates[smallestIdx], min.z },
-                 { max.x, min.y + candidates[smallestIdx], max.z } };
+        return Plane{ { min.x, min.y + off, min.z },
+                      { max.x, min.y + off, max.z } };
     }
 
     case Axis::Z:   
     {
-        for (size_t i = 0; i < candidates.size(); ++i) {
+        std::vector<int> &p = svt::offsetsZ;
+//        for (size_t i = 0; i < p.size(); ++i) {
+        for(auto pp : p) {
             int diff{
                 diffSides(
                     min, 
-                    { max.x, max.y, min.z+candidates[i] },
-                    { min.x, min.y, min.z+candidates[i] },
+                    { max.x, max.y, min.z+pp },
+                    { min.x, min.y, min.z+pp },
                     max
                 ) };
 
-            std::cout << "Z i: " << i << " diff: " << diff << "\n-----\n" ;
+            std::cout << "Z pp: " << pp << " diff: " << diff << "\n-----\n" ;
             //TODO: handle diff==smallest separatly
             if (diff <= smallest) {
                 smallest = diff;
-                smallestIdx = i;
+                off = pp;
             }
         } //for
 
-        return { { min.x, min.y, min.z + candidates[smallestIdx] },
-                 { max.x, max.y, min.z + candidates[smallestIdx] } };
+        return Plane{ { min.x, min.y, min.z + off },
+                      { max.x, max.y, min.z + off } };
     }
 
     default: break;
     }
 
-    return { { -1,-1,-1 }, { -1,-1,-1 } };
+    return Plane{ { -1,-1,-1 }, { -1,-1,-1 } };  // The most interesting case.
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 int 
-bv(BoundingVolume &vol)
+bv(Vec3 const &rmin, Vec3 const &rmax)
 {
     Vec3 bvmin{ 0, 0, 0 };
     Vec3 bvmax{ 0, 0, 0 };
 
-    //Vec3 rmin{ vol.min() };
-    //Vec3 rmax{ vol.extent() - 1 };
-
-    uint32_t found{ 0x0 }; 
+    uint32_t found{ 0x0 };
     // xmin --> xmax
     for (int x{ rmin.x }; x < rmax.x; ++x) {
         if (num(rmin, { x, rmax.y, rmax.z }) != 0) {
@@ -306,9 +347,9 @@ bv(BoundingVolume &vol)
 
     
     if (found == 0x20+0x10+0x8+0x4+0x2+0x1) {
-        std::cout << "All planes found: " << found << std::endl;
+        std::cerr << "All planes found: " << found << std::endl;
     } else {
-        std::cout << "Not all planes found: " << found << std::endl;
+        std::cerr << "Not all planes found: " << found << std::endl;
 //      return 0;
     }
 
@@ -318,21 +359,8 @@ bv(BoundingVolume &vol)
 
     std::cout << "Num(" << bvmin << ", " << bvmax << "): " << n << std::endl;
 
-//    vol.nonEmptyVoxels(n);
-//    vol.min(bvmin);
-//    vol.extent(bvmax+1);
-    
-    rmin = bvmin;
-    rmax = bvmax;
-
     return n;
 }
-
-//int bv(Vec3 const& rmin, Vec3 const& rmax)
-//{
-//    Vec3MinMaxPair pair;
-//    return bv(rmin, rmax, pair);
-//}
 
 
 ///////////////////////////////////////////////////////////////////////////////

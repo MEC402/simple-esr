@@ -45,6 +45,17 @@ public:
     int nonEmptyVoxels() const { return m_nonEmptyVoxels; }
     void nonEmptyVoxels(int n) { m_nonEmptyVoxels = n; }
 
+    int totalVoxels() const { return m_extent.x * m_extent.y * m_extent.z; }
+
+
+    //////////////////////////////////////////////////////////////////////////
+    /// \brief Percentage of non-empty voxels to total voxels
+    //////////////////////////////////////////////////////////////////////////
+    float percentEmpty() const
+    {
+        return nonEmptyVoxels() / static_cast<float>(totalVoxels());
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Return the shortest Axis of this BoundingVolume.
@@ -65,6 +76,7 @@ public:
 
         return a;
     }
+
 
 
 private:

@@ -77,7 +77,7 @@ void split(float minEmptyPercent, int minVoxels, int delta,
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find bounding volumes that minimize empty space.
 ///////////////////////////////////////////////////////////////////////////////
-void recursiveSplitHelper(Node &n, Axis axis, std::vector<Node> &);
+void recursiveSplitHelper(Node &n);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -88,27 +88,16 @@ void recursiveSplitHelper(Node &n, Axis axis, std::vector<Node> &);
 /// \param[in] bv BoundingVolume containing the region to split.
 /// \return The plane.
 ///////////////////////////////////////////////////////////////////////////////
-Plane findPlane(std::vector<int> const &candidates, Axis a, BoundingVolume const &bv);
+Plane findPlane(Axis a, BoundingVolume const &bv);
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Shrink the BoundingVolume and update the non-empty voxel count.
+/// \param[in] rmin
+/// \param[in] rmax
 /// \return Number of non-empty voxels, or num(R).
 ///////////////////////////////////////////////////////////////////////////////
 int bv(Vec3 const &rmin, Vec3 const &rmax);
-//void bv(BoundingVolume &volume);
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Find the splitting plane that balances the number of non-empty
-///        voxels on both sides. 
-/// \param[in] vmin Minimum point of the bounding volume (0-indexed).
-/// \param[in] vmax Maximum point of the bounding volume (0-indexed).
-/// \param[out] bounds Bounding volume boundaries.
-///
-/// \return Number of non-empty voxels, or num(R).
-///////////////////////////////////////////////////////////////////////////////
-//int bv(Vec3 const &vmin, Vec3 const &vmax, Vec3MinMaxPair &bounds);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,8 +106,8 @@ int bv(Vec3 const &rmin, Vec3 const &rmax);
 ///
 /// \return An int that is the non-empty voxel difference.
 ///////////////////////////////////////////////////////////////////////////////
-int diffSides(Vec3 const &leftMin, Vec3 const &leftMax, 
-        Vec3 const &rightMin, Vec3 const &rightMax);
+int diffSides(Vec3 const &leftMin, Vec3 const &leftMax, Vec3 const &rightMin,
+        Vec3 const &rightMax);
 
 
 void printSumTable();
