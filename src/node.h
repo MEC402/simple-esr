@@ -5,6 +5,10 @@
 #include "axis.h"
 #include "boundingvolume.h"
 
+#include <ostream>
+#include <string>
+#include <sstream>
+
 /////////////////////////////////////////////////////////////////////////// 
 /// \brief A node!!!! In a tree!!!
 /////////////////////////////////////////////////////////////////////////// 
@@ -52,11 +56,27 @@ public:
     float percentEmpty() const { return m_bv.percentEmpty(); }
     int numVoxels() const { return m_bv.totalVoxels(); }
 
+    std::string to_string() const
+    {
+        std::stringstream ss;
+        ss << "{ I: " << m_index << ", leaf: " << m_isLeaf << ", BV: " << m_bv
+           << ", Axis: " << static_cast<int>(m_axis) << " }";
+
+        return ss.str();
+    }
+
+    friend std::ostream& operator<<(std::ostream &os, const Node &n)
+    {
+        return os << n.to_string();
+    }
+
 private:
     int m_index;
     bool m_isLeaf;
     BoundingVolume m_bv;
     Axis m_axis;
 };
+
+
 
 #endif  // !node_h__

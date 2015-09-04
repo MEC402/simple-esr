@@ -2,8 +2,24 @@
 #ifndef vec3_h__
 #define vec3_h__
 
+#include <string>
+#include <sstream>
+#include <ostream>
+#include <cstdlib>
+
+
 struct Vec3
 {
+
+    static Vec3 abs(const Vec3 &v)
+    {
+        Vec3 r{ v };
+        r.x = std::abs(r.x);
+        r.y = std::abs(r.y);
+        r.z = std::abs(r.z);
+        return r;
+    }
+
     Vec3() 
         : Vec3(0,0,0) 
     { }
@@ -72,6 +88,17 @@ struct Vec3
         return lhs;
     }
 
+    std::string to_string() const
+    {
+        std::stringstream ss;
+        ss << "{" << x << ", " << y << ", " << z << "}";
+        return ss.str();
+    }
+
+    friend std::ostream& operator<<(std::ostream &os, Vec3 const &v)
+    {
+        return os << v.to_string();
+    }
 
     int x;
     int y;
@@ -103,6 +130,18 @@ struct Plane
 
     const Vec3 & max() const { return m_max; }
     void max(const Vec3 &m) { m_max = m; }
+
+    std::string to_string() const
+    {
+        std::stringstream ss;
+        ss << "{" << min() << ", " << max() << "}";
+        return ss.str();
+    }
+
+    friend std::ostream& operator<<(std::ostream &os, Plane const &v)
+    {
+        return os << v.to_string();
+    }
 
 private:
     Vec3 m_min;

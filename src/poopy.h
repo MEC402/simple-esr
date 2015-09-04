@@ -58,7 +58,7 @@ createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empt
 /// \param start Region start in voxels. 
 /// \param [out] candidates Return storage.
 ///////////////////////////////////////////////////////////////////////////////
-void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates);
+//void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,8 +70,7 @@ void genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates
 /// \param delta aieee!
 /// \param [out] bvols Output storage for bounding volumes.
 ///////////////////////////////////////////////////////////////////////////////
-void split(float minEmptyPercent, int minVoxels, int delta, 
-        std::vector<Node> &bvols);
+void split(float minEmptyPercent, int minVoxels, Vec3 const &delta);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,8 +82,8 @@ void recursiveSplitHelper(Node &n);
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find the plane in region R=[rmin, rmax] that balances the number 
 ///        of non-empty voxels on both sides of the plane.
-/// \param[in] candidates set of candidate planes to search.
 /// \param[in] a Axis along with to split.
+/// \param[in] delta
 /// \param[in] bv BoundingVolume containing the region to split.
 /// \return The plane.
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,8 +112,7 @@ int diffSides(Vec3 const &leftMin, Vec3 const &leftMax, Vec3 const &rightMin,
 void printSumTable();
 void printNumCoords(Vec3 const &min, Vec3 const &max);
 
-std::ostream& operator<<(std::ostream &os, Vec3 const &v);
 std::ostream& operator<<(std::ostream &os, Plane const &v);
-std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv);
+//std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv);
 
 #endif //POOPYPANTS_POOPY_H

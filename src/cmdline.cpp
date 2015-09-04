@@ -15,13 +15,15 @@ try
     TCLAP::CmdLine cmd("Simple Blocks blocking volume render experiment.", ' ');
 
     // volume data file
-    TCLAP::ValueArg<std::string> fileArg("f", "file", "Path to data file.", false, "", "string");
+    TCLAP::ValueArg<std::string> fileArg("f", "file", "Path to data file.",
+            false, "", "string");
     cmd.add(fileArg);
 
     // volume data type
     std::vector<std::string> dataTypes{ "float", "ushort", "uchar" };
     TCLAP::ValuesConstraint<std::string> dataTypeAllowValues(dataTypes);
-    TCLAP::ValueArg<std::string> dataTypeArg("t", "type", "Data type (float, ushort, uchar).", false, "", &dataTypeAllowValues);;
+    TCLAP::ValueArg<std::string> dataTypeArg("t", "type",
+            "Data type (float, ushort, uchar).", false, "", &dataTypeAllowValues);
     cmd.add(dataTypeArg);
 
     
@@ -36,14 +38,22 @@ try
     cmd.add(zdimArg);
 
 
-
-
     // threshold min/max
     TCLAP::ValueArg<float> tmin("", "tmin", "Thresh min", false, 0.0, "float");
     cmd.add(tmin);
-    
+
     TCLAP::ValueArg<float> tmax("", "tmax", "Thresh max", false, 1.0, "float");
     cmd.add(tmax);
+
+
+    // halting criteria for recursive division of volume.
+    TCLAP::ValueArg<float> emptyPercentArg("", "eperc", "Min. empty percent",
+            false, 1.0, "float");
+    cmd.add(emptyPercentArg);
+
+    TCLAP::ValueArg<int> minVoxelsArg("", "minvox", "Minimum voxels per region",
+            false, 1, "float");
+    cmd.add(minVoxelsArg);
 
 
     // print blocks
@@ -60,6 +70,8 @@ try
     opts.d = zdimArg.getValue();
     opts.tmin = tmin.getValue();
     opts.tmax = tmax.getValue();
+    opts.emptyPercent = emptyPercentArg.getValue();
+    opts.minVoxels = minVoxelsArg.getValue();
 
     return static_cast<int>(cmd.getArgList().size());
 

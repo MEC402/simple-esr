@@ -48,22 +48,7 @@ int main(int argc, char const * argv[])
     int height = static_cast<int>(opts.h);
     int depth  = static_cast<int>(opts.d);
     createSumTable(data.get(), {width, height, depth}, peep);
-
-//    Vec3MinMaxPair planeX = findPlane(64, X, {1, 1, 1}, {(width-1)/2, (height-1)/2, (depth-1)/2});
-//
-//    Vec3MinMaxPair planeY = findPlane(64, Y, {1, 1, 1}, {(width-1)/2, (height-1)/2, (depth-1)/2});
-//
-//    Vec3MinMaxPair planeZ = findPlane(64, Z, {1, 1, 1}, {(width-1)/2, (height-1)/2, (depth-1)/2});
-
-//    std::cout << "Plane X: " << planeX << std::endl;
-//    std::cout << "Plane Y: " << planeY << std::endl;
-//    std::cout << "Plane Z: " << planeZ << std::endl;
-
-    //Vec3MinMaxPair split = findPlane(0.3f, X, roi_min, roi_max);
-
-    //std::cout << split << std::endl;
-
-    //printNumCoords(roi_min, roi_max);
+    split(0.1, 3, {5,5,5});
 
     return 0;
 }

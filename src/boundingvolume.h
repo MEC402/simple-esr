@@ -5,6 +5,10 @@
 #include "axis.h"
 #include "vec3.h"
 
+#include <ostream>
+#include <sstream>
+#include <string>
+
 class BoundingVolume{
 public:
 
@@ -77,7 +81,18 @@ public:
         return a;
     }
 
+    std::string to_string() const
+    {
+        std::stringstream ss;
+        ss << "{" << min() << ", " << extent() << ", " << nonEmptyVoxels() << "}";
+        return ss.str();
+    }
 
+    ////////////////////////////////////////////////////////////////////////////
+    friend std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv)
+    {
+        return os << bv.to_string();
+    }
 
 private:
     int m_nonEmptyVoxels;

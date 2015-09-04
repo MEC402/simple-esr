@@ -10,14 +10,16 @@
 namespace svt{
 
     std::vector<int> sumTable;
-    std::vector<int> offsetsX;
-    std::vector<int> offsetsY;
-    std::vector<int> offsetsZ;
+//    std::vector<int> offsetsX;
+//    std::vector<int> offsetsY;
+//    std::vector<int> offsetsZ;
+
     std::vector<Node> tree;
 
     Vec3 extents{ 0,0,0 };
     int minVoxels{ 0 };
     float minEmptyPercent{ 0 };
+    Vec3 delta{ 0,0,0 };
 
     /////////////////////////////////////////////////////////////////////////// 
     /// \brief Generator that produces ints spaced by \c delta amount and 
@@ -105,25 +107,26 @@ createSumTable(float const *volume, Vec3 extents, std::function<int(float)> empt
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void
-genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates)
-{
-    candidates.resize(static_cast<size_t>(numPlanes));
-    std::generate(candidates.begin(), candidates.end(),
-        svt::accum_delta(start, delta));
-}
+//void
+//genPlanes(int numPlanes, int delta, int start, std::vector<int> &candidates)
+//{
+//    candidates.resize(static_cast<size_t>(numPlanes));
+//    std::generate(candidates.begin(), candidates.end(),
+//        svt::accum_delta(start, delta));
+//}
 
 
 ///////////////////////////////////////////////////////////////////////////////
 void
-split(float minEmptyPercent, int minVoxels, int delta)
+split(float minEmptyPercent, int minVoxels, Vec3 const &delta)
 {
     svt::minEmptyPercent = minEmptyPercent;
     svt::minVoxels = minVoxels;
+    svt::delta = delta;
 
-    genPlanes(svt::extents.x / delta, delta, delta, svt::offsetsX);
-    genPlanes(svt::extents.y / delta, delta, delta, svt::offsetsY);
-    genPlanes(svt::extents.z / delta, delta, delta, svt::offsetsZ);
+//    genPlanes(svt::extents.x / delta, delta, delta, svt::offsetsX);
+//    genPlanes(svt::extents.y / delta, delta, delta, svt::offsetsY);
+//    genPlanes(svt::extents.z / delta, delta, delta, svt::offsetsZ);
     
     Node root{ 0, false, 0, {0,0,0}, svt::extents };
     
@@ -137,7 +140,7 @@ void
 recursiveSplitHelper(Node &n)
 {
     const bool not_a_leaf{ false };
-    const bool is_a_leaf{ !not_a_leaf };
+    const bool is_a_leaf { true  };
 
     // if n.numVox too small: n.isLeafe(true); return;
     // if n.size too small: n.isLeaf(true); return;
@@ -177,8 +180,10 @@ int
 diffSides(Vec3 const &leftMin, Vec3 const &leftMax,
         Vec3 const &rightMin, Vec3 const &rightMax)
 {
-    int left{ bv(leftMin, leftMax) };
-    int right{ bv(rightMin, rightMax) };
+//    int left{ bv(leftMin, leftMax) };
+    int left{ num(leftMin, leftMax) };
+//    int right{ bv(rightMin, rightMax) };
+    int right{ num(rightMin, rightMax) };
     return std::abs(left - right);
 }
 
@@ -196,9 +201,9 @@ findPlane(Axis a, BoundingVolume const &bv)
     {
     case Axis::X:   
     {
-        std::vector<int> &p = svt::offsetsX;
-//        for (size_t i = 0; i < p.size(); ++i) {
-        for(auto pp : p) {
+        svt::accum_delta next_offset(min.x, svt::delta.x);
+        int pp{ next_offset() };
+        while (pp < max.x) {
             int diff{ 
                 diffSides(
                     min, 
@@ -213,6 +218,7 @@ findPlane(Axis a, BoundingVolume const &bv)
                 smallest = diff;
                 off = pp;
             }
+            pp = next_offset();
         } //for
 
         return Plane{ { min.x + off, min.y, min.z },
@@ -221,10 +227,10 @@ findPlane(Axis a, BoundingVolume const &bv)
 
     case Axis::Y:   
     {
-        std::vector<int> &p = svt::offsetsY;
-//        for (size_t i = 0; i < p.size(); ++i) {
-        for(auto pp : p) {
-            int diff{ 
+        svt::accum_delta next_offset(min.y, svt::delta.y);
+        int pp{ next_offset() };
+        while(pp < max.y) {
+            int diff{
                 diffSides( 
                     min, 
                     { max.x, min.y+pp, max.z },
@@ -238,6 +244,7 @@ findPlane(Axis a, BoundingVolume const &bv)
                 smallest = diff;
                 off = pp;
             }
+            pp = next_offset();
         } //for
 
         return Plane{ { min.x, min.y + off, min.z },
@@ -246,9 +253,9 @@ findPlane(Axis a, BoundingVolume const &bv)
 
     case Axis::Z:   
     {
-        std::vector<int> &p = svt::offsetsZ;
-//        for (size_t i = 0; i < p.size(); ++i) {
-        for(auto pp : p) {
+        svt::accum_delta next_offset(min.z, svt::delta.z);
+        int pp{ next_offset() };
+        while (pp < max.z) {
             int diff{
                 diffSides(
                     min, 
@@ -258,11 +265,12 @@ findPlane(Axis a, BoundingVolume const &bv)
                 ) };
 
             std::cout << "Z pp: " << pp << " diff: " << diff << "\n-----\n" ;
-            //TODO: handle diff==smallest separatly
+            //TODO: handle diff==smallest separately
             if (diff <= smallest) {
                 smallest = diff;
                 off = pp;
             }
+            pp = next_offset();
         } //for
 
         return Plane{ { min.x, min.y, min.z + off },
@@ -395,22 +403,4 @@ printNumCoords(Vec3 const &min, Vec3 const &max)
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-std::ostream& operator<<(std::ostream &os, Vec3 const &v)
-{
-    return os << "{" << v.x << ", " << v.y << ", " << v.z << "}";
-}
 
-
-///////////////////////////////////////////////////////////////////////////////
-std::ostream& operator<<(std::ostream &os, Plane const &v)
-{
-    return os << "{" << v.min() << ", " << v.max() << "}";
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv)
-{
-    return os << "{" << bv.min() << ", " << bv.extent() << ", " << bv.nonEmptyVoxels() << "}";
-}

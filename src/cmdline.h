@@ -25,6 +25,10 @@ struct CommandLineOptions
     float tmax;
     // threshold minimum
     float tmin;
+    // halting criteria -- min percent of empty voxels
+    float emptyPercent;
+    // halting criteria -- min number of total voxels
+    int minVoxels;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
