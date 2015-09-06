@@ -76,7 +76,7 @@ void split(float minEmptyPercent, int minVoxels, Vec3 const &delta);
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Find bounding volumes that minimize empty space.
 ///////////////////////////////////////////////////////////////////////////////
-void recursiveSplitHelper(Node &n);
+void recursiveSplitHelper(Node &n, int);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,6 +111,7 @@ int diffSides(Vec3 const &leftMin, Vec3 const &leftMax, Vec3 const &rightMin,
 
 void printSumTable();
 void printNumCoords(Vec3 const &min, Vec3 const &max);
+void printTree();
 
 std::ostream& operator<<(std::ostream &os, Plane const &v);
 //std::ostream& operator<<(std::ostream &os, BoundingVolume const &bv);

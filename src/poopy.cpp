@@ -123,21 +123,22 @@ split(float minEmptyPercent, int minVoxels, Vec3 const &delta)
     svt::minEmptyPercent = minEmptyPercent;
     svt::minVoxels = minVoxels;
     svt::delta = delta;
+    svt::tree.resize(32);  // 5 levels deep.
 
 //    genPlanes(svt::extents.x / delta, delta, delta, svt::offsetsX);
 //    genPlanes(svt::extents.y / delta, delta, delta, svt::offsetsY);
 //    genPlanes(svt::extents.z / delta, delta, delta, svt::offsetsZ);
     
-    Node root{ 0, false, 0, {0,0,0}, svt::extents };
+    Node root{ 0, false, num({0,0,0}, svt::extents-1), {0,0,0}, svt::extents };
     
     svt::tree[0] = root;
-    recursiveSplitHelper(root);
+    recursiveSplitHelper(root, 0);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 void
-recursiveSplitHelper(Node &n)
+recursiveSplitHelper(Node &n, int depth)
 {
     const bool not_a_leaf{ false };
     const bool is_a_leaf { true  };
@@ -146,11 +147,13 @@ recursiveSplitHelper(Node &n)
     // if n.size too small: n.isLeaf(true); return;
     if (n.numVoxels() <= svt::minVoxels) {
         n.isLeaf(is_a_leaf);
+        std::cout << depth << ": Returning... numVoxels.\n";
         return;
     }
 
     if (n.percentEmpty() <= svt::minEmptyPercent){
         n.isLeaf(is_a_leaf);
+        std::cout << depth << ": Returning... minEmptyPercent.\n";
         return;
     }
 
@@ -161,14 +164,14 @@ recursiveSplitHelper(Node &n)
                num(n.min(), p.max()),
                n.min(),
                p.max() - n.min() };
-    recursiveSplitHelper(left);
+    recursiveSplitHelper(left, depth+1);
 
     Node right{ n.rightChild(),
                 not_a_leaf,
                 num(p.min(), n.max()),
                 p.min(),
                 n.max() - p.min() };
-    recursiveSplitHelper(right);
+    recursiveSplitHelper(right, depth+1);
 
     svt::tree[left.index()] = left;
     svt::tree[right.index()] = right;
@@ -363,7 +366,7 @@ bv(Vec3 const &rmin, Vec3 const &rmax)
 
     //TODO: think about which one: idx-1 or idx-none?
 //  int n = num({ bvmin.x-1, bvmin.y-1, bvmin.z-1 }, bvmax);
-    int n = num({ bvmin.x, bvmin.y, bvmin.z }, bvmax);
+    int n = num(bvmin, bvmax);
 
     std::cout << "Num(" << bvmin << ", " << bvmax << "): " << n << std::endl;
 
@@ -402,5 +405,12 @@ printNumCoords(Vec3 const &min, Vec3 const &max)
            << ")\n     = " << num(min, max) << "\n";
 }
 
-
+void
+printTree()
+{
+    for(Node n : svt::tree) {
+        std::cout << n;
+        std::cout << std::endl;
+    }
+}
 

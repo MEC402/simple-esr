@@ -56,6 +56,8 @@ public:
     float percentEmpty() const { return m_bv.percentEmpty(); }
     int numVoxels() const { return m_bv.totalVoxels(); }
 
+
+    ////////////////////////////////////////////////////////////////////////////
     std::string to_string() const
     {
         std::stringstream ss;
@@ -65,6 +67,7 @@ public:
         return ss.str();
     }
 
+    ////////////////////////////////////////////////////////////////////////////
     friend std::ostream& operator<<(std::ostream &os, const Node &n)
     {
         return os << n.to_string();

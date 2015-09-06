@@ -48,7 +48,7 @@ int main(int argc, char const * argv[])
     int height = static_cast<int>(opts.h);
     int depth  = static_cast<int>(opts.d);
     createSumTable(data.get(), {width, height, depth}, peep);
-    split(0.1, 3, {5,5,5});
-
+    split(opts.emptyPercent, opts.minVoxels, {5,5,5});
+    printTree();
     return 0;
 }
