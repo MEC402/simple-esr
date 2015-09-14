@@ -2,8 +2,6 @@
 #include "poopy.h"
 #include "cmdline.h"
 
-#include <bd/file/datareader.h>
-#include <bd/log/gl_log.h>
 
 #include <iostream>
 #include <memory>
@@ -31,7 +29,6 @@ struct is_empty {
 
 int main(int argc, char const * argv[])
 {
-    bd::gl_log_restart();
     CommandLineOptions opts;
     if (parseThem(argc, argv, opts) == 0) {
         std::cout << "Use -h for command line options help." << std::endl;
@@ -39,16 +36,16 @@ int main(int argc, char const * argv[])
     }
 
     std::string rawfile{ opts.filePath };
-    bd::DataReader<float, float> reader;
-    reader.loadRaw3d(rawfile, opts.w, opts.h, opts.d, false);
-    std::unique_ptr<float[]> data{ reader.takeOwnership() };
-
-    is_empty peep(opts.tmin, opts.tmax);
-    int width  = static_cast<int>(opts.w);
-    int height = static_cast<int>(opts.h);
-    int depth  = static_cast<int>(opts.d);
-    createSumTable(data.get(), {width, height, depth}, peep);
-    split(opts.emptyPercent, opts.minVoxels, {5,5,5});
-    printTree();
+//    DataReader<float, float> reader;
+//    reader.loadRaw3d(rawfile, opts.w, opts.h, opts.d, false);
+//    std::unique_ptr<float[]> data{ reader.takeOwnership() };
+//
+//    is_empty peep(opts.tmin, opts.tmax);
+//    int width  = static_cast<int>(opts.w);
+//    int height = static_cast<int>(opts.h);
+//    int depth  = static_cast<int>(opts.d);
+//    createSumTable(data.get(), {width, height, depth}, peep);
+//    split(opts.emptyPercent, opts.minVoxels, {5,5,5});
+//    printTree();
     return 0;
 }

@@ -10,27 +10,7 @@ if (UNIX)
     set(CMAKE_RANLIB "/usr/bin/llvm-ranlib")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-missing-braces")
 endif(UNIX)
-
-if(NOT DEFINED CRUFT_INCLUDE_DIR)
-    set(CRUFT_INCLUDE_DIR "")
-endif()
-set(CRUFT_INCLUDE_DIR ${${CRUFT_INCLUDE_DIR}} CACHE PATH "Path to cruft include dir.")
-
-if(NOT DEFINED CRUFT_LIBRARIES)
-    set(CRUFT_LIBRARIES "")
-endif()
-set(CRUFT_LIBRARIES ${${CRUFT_LIBRARIES}} CACHE FILEPATH "Path to cruft static library file.")
-
-find_package(PkgConfig REQUIRED)
-pkg_search_module(GLFW REQUIRED glfw3)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-
-include_directories("src/tclap/include"
-    "${CRUFT_INCLUDE_DIR}"
-    "${GLFW_INCLUDE_DIRS}"
-    "${GLEW_INCLUDE_DIRS}"
-    )
+include_directories("src/tclap/include" )
 
 set(SOURCE_FILES
     src/axis.h
@@ -44,6 +24,6 @@ set(SOURCE_FILES
 
 add_executable(esr "src/main.cpp" ${SOURCE_FILES})
 
-target_link_libraries(esr ${CRUFT_LIBRARIES} ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})
+#target_link_libraries(esr ${CRUFT_LIBRARIES} ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})
 
-#add_subdirectory("test/")
+add_subdirectory("test/")

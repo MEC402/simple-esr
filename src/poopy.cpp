@@ -132,19 +132,17 @@ split(float minEmptyPercent, int minVoxels, Vec3 const &delta)
     Node root{ 0, false, num({0,0,0}, svt::extents-1), {0,0,0}, svt::extents };
     
     svt::tree[0] = root;
-    recursiveSplitHelper(root, 0);
+    recursiveSplit(root, 0);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 void
-recursiveSplitHelper(Node &n, int depth)
+recursiveSplit(Node &n, int depth)
 {
     const bool not_a_leaf{ false };
     const bool is_a_leaf { true  };
 
-    // if n.numVox too small: n.isLeafe(true); return;
-    // if n.size too small: n.isLeaf(true); return;
     if (n.numVoxels() <= svt::minVoxels) {
         n.isLeaf(is_a_leaf);
         std::cout << depth << ": Returning... numVoxels.\n";
@@ -164,14 +162,14 @@ recursiveSplitHelper(Node &n, int depth)
                num(n.min(), p.max()),
                n.min(),
                p.max() - n.min() };
-    recursiveSplitHelper(left, depth+1);
+    recursiveSplit(left, depth + 1);
 
     Node right{ n.rightChild(),
                 not_a_leaf,
                 num(p.min(), n.max()),
                 p.min(),
                 n.max() - p.min() };
-    recursiveSplitHelper(right, depth+1);
+    recursiveSplit(right, depth + 1);
 
     svt::tree[left.index()] = left;
     svt::tree[right.index()] = right;
