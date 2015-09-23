@@ -1,7 +1,7 @@
 //
 // Created by jim on 8/16/15.
 //
-#include "poopy.h"
+#include "svt.h"
 
 #include <vector>
 #include <iostream>
@@ -43,9 +43,9 @@ namespace svt{
 
 ///////////////////////////////////////////////////////////////////////////////
 size_t
-to1d(size_t x, size_t y, size_t z, size_t maxX, size_t maxY)
+to1d(size_t col, size_t row, size_t slab, size_t maxCol, size_t maxRow)
 {
-    return x + maxX * (y + maxY * z);
+    return col + maxCol * (row + maxRow * slab);
 }
 
 

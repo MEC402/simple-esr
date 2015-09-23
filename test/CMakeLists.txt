@@ -7,4 +7,4 @@ project(test_esr)
 include_directories("catch" "../src/")
 
 set(TEST_SOURCE_FILES tests.cpp test_main.cpp)
-add_executable(test_esr "../src/poopy.h" "../src/poopy.cpp" "${TEST_SOURCE_FILES}")
+add_executable(test_esr "../src/svt.h" "../src/svt.cpp" "${TEST_SOURCE_FILES}")

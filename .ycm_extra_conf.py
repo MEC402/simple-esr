@@ -30,11 +30,11 @@ flags = [
 '-I',
 '.',
 '-I',
-'./src',
+'src',
 '-I',
-'/home/jim/programming/thesis/poopy-pants.git/src/tclap/include',
+'src/tclap/include',
 '-I',
-'/home/jim/usr/local/include/'
+'/Users/jim/Library/crufterly/include'
 ]
 
 
